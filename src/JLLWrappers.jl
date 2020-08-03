@@ -1,5 +1,11 @@
 module JLLWrappers
 
+if isdefined(Base, :Experimental) && isdefined(Base.Experimental, Symbol("@optlevel"))
+    @eval Base.Experimental.@optlevel 0
+end
+
+using Libdl
+
 export executable_wrapper,
     initialize_path_list!,
     get_lib_path_handle!,
@@ -12,8 +18,8 @@ function executable_wrapper(f::Function,
                             LIBPATH::AbstractString,
                             LIBPATH_env::AbstractString,
                             LIBPATH_default::AbstractString,
-                            adjust_PATH::Bool = true,
-                            adjust_LIBPATH::Bool = true,
+                            adjust_PATH::Bool,
+                            adjust_LIBPATH::Bool,
                             path_separator::Char,
                             )
 
@@ -47,7 +53,7 @@ function get_lib_path_handle!(libpath_list, artifact_dir, lib_splitpath)
     # of `ccall` with its `SONAME` will find this path immediately.
     handle = dlopen(lib_path)
     push!(libpath_list, dirname(lib_path))
-    return path, handle
+    return lib_path, handle
 end
 
 function get_exe_path!(path_list, artifact_dir, exe_splitpath)
