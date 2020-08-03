@@ -1,10 +1,21 @@
 module JLLWrappers
 
-function executable_wrapper(f::Function, executable_path::AbstractString,
-                            PATH::AbstractString, LIBPATH::AbstractString,
-                            LIBPATH_env::AbstractString, path_separator::Char,
-                            rest...; adjust_PATH::Bool = true,
-                            adjust_LIBPATH::Bool = true)
+export executable_wrapper,
+    initialize_path_list!,
+    get_lib_path_handle!,
+    get_exe_path!,
+    cleanup_path_libpath!
+
+function executable_wrapper(f::Function,
+                            executable_path::AbstractString,
+                            PATH::AbstractString,
+                            LIBPATH::AbstractString,
+                            LIBPATH_env::AbstractString,
+                            LIBPATH_default::AbstractString,
+                            adjust_PATH::Bool = true,
+                            adjust_LIBPATH::Bool = true,
+                            path_separator::Char,
+                            )
 
     env_mapping = Dict{String,String}()
     if adjust_PATH
