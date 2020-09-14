@@ -106,7 +106,6 @@ function generate_toplevel_definitions(src_name, __source__)
     end
 end
 
-
 """
     generate_wrapper_load(src_name, pkg_uuid)
 
@@ -118,6 +117,15 @@ artifacts, find the one that matches the host platform, then load the matching w
 function generate_wrapper_load(src_name, pkg_uuid, __source__)
     jll_name = "$(src_name)_jll"
     pkg_dir = dirname(String(__source__.file))
+
+    function platform_parse_compat()
+        if VERSION < v"1.6.0-DEV"
+            return :(parse_wrapper_platform(x) = platform_key_abi(x))
+        else
+            return :(parse_wrapper_platform(x) = parse(Platform, x))
+        end
+    end
+
     return quote
         global best_wrapper
         # Load Artifacts.toml file and select best platform at compile-time, since this is
@@ -127,17 +135,35 @@ function generate_wrapper_load(src_name, pkg_uuid, __source__)
             artifacts_toml = joinpath($(pkg_dir), "..", "Artifacts.toml")
             valid_wrappers = Dict{Platform,String}()
             artifacts = load_artifacts_toml(artifacts_toml; pkg_uuid=$(pkg_uuid))[$(src_name)]
+
+            # Helper function to parse triplets for us
+            $(platform_parse_compat())
+            function make_wrapper_dict(dir, x)
+                return Dict(
+                    parse_wrapper_platform(basename(f)[1:end-3]) =>
+                        joinpath(dir, "wrappers", f) for f in x
+                )
+            end
+
             # If it's a Dict, that means this is an AnyPlatform artifact, act accordingly:
             if isa(artifacts, Dict)
                 joinpath($(pkg_dir), "wrappers", "any.jl")
             else
                 # Otherwise, it's a Vector, and we must select the best platform
+                # First, find all wrappers on-disk, parse their platforms, and match:
+                wrapper_files = filter(x -> endswith(x, ".jl"), readdir(joinpath($(pkg_dir), "wrappers")))
+                wrappers = make_wrapper_dict($(pkg_dir), wrapper_files)
                 for e in artifacts
                     platform = unpack_platform(e, $(jll_name), artifacts_toml)
 
-                    # Filter platforms based on what wrappers we've generated on-disk
-                    wrapper_file = joinpath($(pkg_dir), "wrappers", string(triplet(platform), ".jl"))
-                    if isfile(wrapper_file)
+                    # Filter platforms based on what wrappers we've generated on-disk.
+                    # Because the wrapper file naming strategy relies upon BB's assumptions of triplet
+                    # parsing, it can be somewhat fragile.  So we have loaded all the wrapper filenames
+                    # in, parsed them, and are now using `select_platform()` to match them, which is
+                    # much more robust.  This step avoids a disconnect between what is recorded in the
+                    # `Artifacts.toml` file and what wrappers are available on-disk.
+                    wrapper_file = select_platform(wrappers, platform)
+                    if wrapper_file !== nothing
                         valid_wrappers[platform] = wrapper_file
                     end
                 end
