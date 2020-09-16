@@ -4,8 +4,11 @@ module JLLWrappers
 function excat(exs::Union{Expr,Nothing}...)
     ex = Expr(:block)
     for exn in exs
-        if exn !== nothing
+        exn === nothing && continue
+        if Meta.isexpr(exn, :block)
             append!(ex.args, exn.args)
+        else
+            push!(ex.args, exn)
         end
     end
     return esc(ex)
