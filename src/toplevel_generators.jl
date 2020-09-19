@@ -20,7 +20,7 @@ function generate_imports(src_name)
     # the deprecated `build.jl` mechanism to download the binaries through e.g.
     # `BinaryProvider.jl`.  This should work well for the simplest packages, and
     # require greater and greater heroics for more and more complex packages.
-    if VERSION < v"1.3.0-rc4"
+    @static if VERSION < v"1.3.0-rc4"
         return quote
             error("Unable to use $(src_name)_jll on Julia versions older than 1.3!")
         end
@@ -119,7 +119,7 @@ function generate_wrapper_load(src_name, pkg_uuid, __source__)
     pkg_dir = dirname(String(__source__.file))
 
     function platform_parse_compat()
-        if VERSION < v"1.6.0-DEV"
+        @static if VERSION < v"1.6.0-DEV"
             return :(parse_wrapper_platform(x) = platform_key_abi(x))
         else
             return :(parse_wrapper_platform(x) = parse(Platform, x))

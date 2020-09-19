@@ -19,27 +19,27 @@ function declare_old_executable_product(product_name)
 end
 
 function declare_new_executable_product(product_name)
-    if VERSION < v"1.6.0-DEV"
+    @static if VERSION < v"1.6.0-DEV"
         return nothing
-    end
+    else
+        path_name = Symbol(string(product_name, "_path"))
+        return quote
+            # This is the new-style `addenv()`-based function
+            function $(product_name)(; adjust_PATH::Bool = true, adjust_LIBPATH::Bool = true)
+                env = Base.invokelatest(
+                    JLLWrappers.adjust_ENV!,
+                    copy(ENV),
+                    PATH,
+                    LIBPATH,
+                    adjust_PATH,
+                    adjust_LIBPATH,
+                )
+                return Cmd(Cmd([$(path_name)]); env)
+            end
 
-    path_name = Symbol(string(product_name, "_path"))
-    return quote
-        # This is the new-style `addenv()`-based function
-        function $(product_name)(; adjust_PATH::Bool = true, adjust_LIBPATH::Bool = true)
-            env = Base.invokelatest(
-                JLLWrappers.adjust_ENV!,
-                copy(ENV),
-                PATH,
-                LIBPATH,
-                adjust_PATH,
-                adjust_LIBPATH,
-            )
-            return Cmd(Cmd([$(path_name)]); env)
+            # Signal to concerned parties that they should use the new version, eventually.
+            #@deprecate $(product_name)(func) $(product_name)()
         end
-
-        # Signal to concerned parties that they should use the new version, eventually.
-        #@deprecate $(product_name)(func) $(product_name)()
     end
 end
 

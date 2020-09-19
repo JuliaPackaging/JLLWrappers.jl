@@ -26,7 +26,7 @@ function declare_new_library_product(product_name)
 end
 
 macro declare_library_product(product_name, product_soname)
-    if VERSION < v"1.6.0-DEV"
+    @static if VERSION < v"1.6.0-DEV"
         return declare_old_library_product(product_name, product_soname)
     else
         return declare_new_library_product(product_name)
@@ -34,13 +34,13 @@ macro declare_library_product(product_name, product_soname)
 end
 
 function init_new_library_product(product_name)
-    if VERSION < v"1.6.0-DEV"
+    @static if VERSION < v"1.6.0-DEV"
         return nothing
-    end
-
-    return quote
-        # Initialize non-const variable export with the path to this product
-        global $(product_name) = $(Symbol(string(product_name, "_path")))
+    else
+        return quote
+            # Initialize non-const variable export with the path to this product
+            global $(product_name) = $(Symbol(string(product_name, "_path")))
+        end
     end
 end
 
