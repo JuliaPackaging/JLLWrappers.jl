@@ -1,9 +1,13 @@
 macro declare_file_product(product_name)
+    get_path_name = Symbol(string("get_", product_name, "_path"))
     path_name = Symbol(string(product_name, "_path"))
     return esc(quote
-        # These will be filled in by init_file_product()
+        # These will be filled in by init_file_product().
         $(path_name) = ""
         $(product_name) = ""
+        function $(get_path_name)()
+            return $(path_name)::String
+        end
     end)
 end
 
