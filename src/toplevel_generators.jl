@@ -71,7 +71,7 @@ end
     generate_toplevel_definitions(src_name)
 
 This method generates the toplevel definitions common to all JLL packages, such as
-`is_available()` and `find_artifact_dir()`, etc...
+`is_available()`, the `PATH` and `LIBPATH` symbols, etc....
 """
 function generate_toplevel_definitions(src_name, __source__)
     pkg_dir = dirname(String(__source__.file))
@@ -89,17 +89,6 @@ function generate_toplevel_definitions(src_name, __source__)
         # is no underlying wrapper held within this JLL package.
         const PATH_list = String[]
         const LIBPATH_list = String[]
-
-        function find_artifact_dir()
-            # We determine at compile-time whether our JLL package has been dev'ed and overridden
-            @static if isdir(joinpath(dirname($(pkg_dir)), "override"))
-                return joinpath(dirname($(pkg_dir)), "override")
-            else
-                # We explicitly use `macrocall` here so that we can manually pass the `__source__`
-                # argument, to avoid `@artifact_str` trying to lookup `Artifacts.toml` here.
-                return $(Expr(:macrocall, Symbol("@artifact_str"), __source__, src_name))
-            end
-        end
 
         # We sub off to JLLWrappers' dev_jll, but avoid backedges
         dev_jll() = Base.invokelatest(JLLWrappers.dev_jll, $(src_name))

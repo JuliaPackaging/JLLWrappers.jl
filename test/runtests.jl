@@ -16,9 +16,13 @@ module TestJLL end
         # Package with an ExecutableProduct
         Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "HelloWorldC_jll")))
         @test_nowarn @eval TestJLL using HelloWorldC_jll
-        @test @eval TestJLL HelloWorldC_jll.is_available()
-        @test "Hello, World!" == @eval TestJLL hello_world(h->readchomp(`$h`))
-        @test isdir(@eval TestJLL HelloWorldC_jll.artifact_dir)
+        if Sys.isfreebsd()
+            @test @eval TestJLL !HelloWorldC_jll.is_available()
+        else
+            @test @eval TestJLL HelloWorldC_jll.is_available()
+            @test "Hello, World!" == @eval TestJLL hello_world(h->readchomp(`$h`))
+            @test isdir(@eval TestJLL HelloWorldC_jll.artifact_dir)
+        end
         # Package with a LibraryProduct
         Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "OpenLibm_jll")))
         @test_nowarn @eval TestJLL using OpenLibm_jll

@@ -97,14 +97,6 @@ os = "linux"
     url = "https://github.com/JuliaBinaryWrappers/HelloWorldC_jll.jl/releases/download/HelloWorldC-v1.0.10+1/HelloWorldC.v1.0.10.x86_64-linux-musl.tar.gz"
 [[HelloWorldC]]
 arch = "x86_64"
-git-tree-sha1 = "37587f67bd71fdd9a1e8b0b3c5f5da046aad89fc"
-os = "freebsd"
-
-    [[HelloWorldC.download]]
-    sha256 = "518278c225ed7230ee7ca0ec663269a220c484c83066d597875fe2b377c379e7"
-    url = "https://github.com/JuliaBinaryWrappers/HelloWorldC_jll.jl/releases/download/HelloWorldC-v1.0.10+1/HelloWorldC.v1.0.10.x86_64-unknown-freebsd11.1.tar.gz"
-[[HelloWorldC]]
-arch = "x86_64"
 git-tree-sha1 = "453f7af467feb9da0cafbbcd85b1731b7dfe3e82"
 os = "windows"
 

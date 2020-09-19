@@ -2,6 +2,23 @@ include("products/executable_generators.jl")
 include("products/file_generators.jl")
 include("products/library_generators.jl")
 
+macro generate_wrapper_header(src_name)
+    pkg_dir = dirname(dirname(String(__source__.file)))
+    return esc(quote
+        function find_artifact_dir()
+            # We determine at compile-time whether our JLL package has been dev'ed and overridden
+            @static if isdir(joinpath(dirname($(pkg_dir)), "override"))
+                return joinpath(dirname($(pkg_dir)), "override")
+            else
+                # We explicitly use `macrocall` here so that we can manually pass the `__source__`
+                # argument, to avoid `@artifact_str` trying to lookup `Artifacts.toml` here.
+                return $(Expr(:macrocall, Symbol("@artifact_str"), __source__, src_name))
+            end
+        end
+    end)
+end
+
+
 macro generate_init_header(dependencies...)
     deps_path_add = Expr[]
     if !isempty(dependencies)
