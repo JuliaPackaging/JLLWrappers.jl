@@ -14,7 +14,12 @@ function declare_old_executable_product(product_name)
                 adjust_LIBPATH,
             )
         end
+
+        # This will eventually be replaced with a `Ref{String}`
         $(path_name) = ""
+        function $(Symbol(string("get_", product_name, "_path")))()
+            return $(path_name)::String
+        end
     end
 end
 
