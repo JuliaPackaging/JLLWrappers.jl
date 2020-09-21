@@ -10,4 +10,5 @@ function __init__()
         "bin/hello_world.exe",
     )
 
+    JLLWrappers.@generate_init_footer()
 end  # __init__()

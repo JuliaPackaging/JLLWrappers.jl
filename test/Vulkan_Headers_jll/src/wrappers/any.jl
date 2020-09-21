@@ -10,4 +10,5 @@ function __init__()
         "share/vulkan/registry/vk.xml",
     )
 
+    JLLWrappers.@generate_init_footer()
 end  # __init__()
