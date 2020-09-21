@@ -25,7 +25,7 @@ module TestJLL end
         else
             @test @eval TestJLL HelloWorldC_jll.is_available()
             @test "Hello, World!" == @eval TestJLL hello_world(h->readchomp(`$h`))
-            @test isfile(@eval TestJLL HelloWorldC_jll.hello_world_path)
+            @test isfile(@eval TestJLL HelloWorldC_jll.hello_world_path[])
             @test isfile(@eval TestJLL HelloWorldC_jll.get_hello_world_path())
             @test isdir(@eval TestJLL HelloWorldC_jll.artifact_dir)
             @test !isempty(@eval TestJLL HelloWorldC_jll.PATH)
