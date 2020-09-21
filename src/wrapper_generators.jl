@@ -45,7 +45,7 @@ macro generate_init_footer()
         # Filter out duplicate and empty entries in our PATH and LIBPATH entries
         unique!(PATH_list)
         unique!(LIBPATH_list)
-        global PATH = join(PATH_list, $(pathsep))
-        global LIBPATH = join(vcat(LIBPATH_list, Base.invokelatest(JLLWrappers.get_julia_libpaths)), $(pathsep))
+        PATH[] = join(PATH_list, $(pathsep))
+        LIBPATH[] = join(vcat(LIBPATH_list, Base.invokelatest(JLLWrappers.get_julia_libpaths)), $(pathsep))
     end)
 end

@@ -83,8 +83,8 @@ function generate_toplevel_definitions(src_name, __source__)
         """
         function is_available end
 
-        PATH = ""
-        LIBPATH = ""
+        const PATH = Ref{String}("")
+        const LIBPATH = Ref{String}("")
         # We put these inter-JLL-package API values here so that they are always defined, even if there
         # is no underlying wrapper held within this JLL package.
         const PATH_list = String[]

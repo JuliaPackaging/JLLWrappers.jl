@@ -7,18 +7,17 @@ function declare_old_executable_product(product_name)
             return Base.invokelatest(
                 JLLWrappers.withenv_executable_wrapper,
                 f,
-                $(Symbol("$(product_name)_path")),
-                PATH,
-                LIBPATH,
+                $(Symbol("$(product_name)_path"))[],
+                PATH[],
+                LIBPATH[],
                 adjust_PATH,
                 adjust_LIBPATH,
             )
         end
 
-        # This will eventually be replaced with a `Ref{String}`
-        $(path_name) = ""
+        $(path_name) = Ref{String}()
         function $(Symbol(string("get_", product_name, "_path")))()
-            return $(path_name)::String
+            return $(path_name)[]
         end
     end
 end
@@ -34,12 +33,12 @@ function declare_new_executable_product(product_name)
                 env = Base.invokelatest(
                     JLLWrappers.adjust_ENV!,
                     copy(ENV),
-                    PATH,
-                    LIBPATH,
+                    PATH[],
+                    LIBPATH[],
                     adjust_PATH,
                     adjust_LIBPATH,
                 )
-                return Cmd(Cmd([$(path_name)]); env)
+                return Cmd(Cmd([$(path_name)[]]); env)
             end
 
             # Signal to concerned parties that they should use the new version, eventually.
@@ -61,7 +60,7 @@ macro init_executable_product(product_name, product_path)
     path_name = Symbol(string(product_name, "_path"))
     return esc(quote
         # Locate the executable on-disk, store into $(path_name)
-        global $(path_name) = joinpath(artifact_dir, $(product_path))
+        $(path_name)[] = joinpath(artifact_dir, $(product_path))
 
         # Add this executable's directory onto the list of PATH's that we'll need to expose to dependents
         push!(PATH_list, joinpath(artifact_dir, $(dirname(product_path))))
