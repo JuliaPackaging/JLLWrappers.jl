@@ -15,6 +15,8 @@ module TestJLL end
         @test isfile(@eval TestJLL Vulkan_Headers_jll.vk_xml_path)
         @test isfile(@eval TestJLL Vulkan_Headers_jll.get_vk_xml_path())
         @test isdir(@eval TestJLL Vulkan_Headers_jll.artifact_dir)
+        @test isempty(@eval TestJLL Vulkan_Headers_jll.PATH)
+        @test occursin(Sys.BINDIR, @eval TestJLL Vulkan_Headers_jll.LIBPATH)
         # Package with an ExecutableProduct
         Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "HelloWorldC_jll")))
         @test_nowarn @eval TestJLL using HelloWorldC_jll
@@ -26,6 +28,8 @@ module TestJLL end
             @test isfile(@eval TestJLL HelloWorldC_jll.hello_world_path)
             @test isfile(@eval TestJLL HelloWorldC_jll.get_hello_world_path())
             @test isdir(@eval TestJLL HelloWorldC_jll.artifact_dir)
+            @test !isempty(@eval TestJLL HelloWorldC_jll.PATH)
+            @test occursin(Sys.BINDIR, @eval TestJLL HelloWorldC_jll.LIBPATH)
         end
         # Package with a LibraryProduct
         Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "OpenLibm_jll")))
@@ -35,5 +39,7 @@ module TestJLL end
         @test isfile(@eval TestJLL OpenLibm_jll.libopenlibm_path)
         @test isfile(@eval TestJLL OpenLibm_jll.get_libopenlibm_path())
         @test isdir(@eval TestJLL OpenLibm_jll.artifact_dir)
+        @test isempty(@eval TestJLL OpenLibm_jll.PATH)
+        @test occursin(Sys.BINDIR, @eval TestJLL OpenLibm_jll.LIBPATH)
     end
 end
