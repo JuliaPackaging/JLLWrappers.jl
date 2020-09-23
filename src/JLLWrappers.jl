@@ -1,5 +1,9 @@
 module JLLWrappers
 
+if isdefined(Base, :Experimental) && isdefined(Base.Experimental, Symbol("@compiler_options"))
+    @eval Base.Experimental.@compiler_options compile=min optimize=0 infer=false
+end
+
 # We need to glue expressions together a lot
 function excat(exs::Union{Expr,Nothing}...)
     ex = Expr(:block)
