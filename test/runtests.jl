@@ -44,7 +44,7 @@ module TestJLL end
 
         # Issue #20
         if Sys.iswindows()
-            @test occursin(Sys.BINDIR, JLLWrappers.get_julia_libpaths())
+            @test Sys.BINDIR ∈ JLLWrappers.get_julia_libpaths()
         end
     end
 end
