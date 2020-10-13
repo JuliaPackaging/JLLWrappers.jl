@@ -14,19 +14,21 @@ else
 end
 
 function adjust_ENV!(env::Dict, PATH::String, LIBPATH::String, adjust_PATH::Bool, adjust_LIBPATH::Bool)
-    if adjust_PATH
-        if !isempty(get(env, "PATH", ""))
-            env["PATH"] = string(PATH, pathsep, env["PATH"])
-        else
-            env["PATH"] = PATH
-        end
-    end
     if adjust_LIBPATH
         LIBPATH_base = get(env, LIBPATH_env, expanduser(LIBPATH_default))
         if !isempty(LIBPATH_base)
             env[LIBPATH_env] = string(LIBPATH, pathsep, LIBPATH_base)
         else
             env[LIBPATH_env] = LIBPATH
+        end
+    end
+    if adjust_PATH && (LIBPATH_env != "PATH" || !adjust_LIBPATH)
+        if adjust_PATH
+            if !isempty(get(env, "PATH", ""))
+                env["PATH"] = string(PATH, pathsep, env["PATH"])
+            else
+                env["PATH"] = PATH
+            end
         end
     end
     return env
