@@ -41,5 +41,10 @@ module TestJLL end
         @test isdir(@eval TestJLL OpenLibm_jll.artifact_dir)
         @test isempty(@eval TestJLL OpenLibm_jll.PATH[])
         @test occursin(Sys.BINDIR, @eval TestJLL OpenLibm_jll.LIBPATH[])
+
+        # Issue #20
+        if Sys.iswindows()
+            @test Sys.BINDIR ∈ JLLWrappers.get_julia_libpaths()
+        end
     end
 end
