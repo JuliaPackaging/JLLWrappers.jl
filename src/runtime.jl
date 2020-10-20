@@ -84,7 +84,11 @@ Return the library paths that e.g. libjulia and such are stored in.
 """
 function get_julia_libpaths()
     if isempty(JULIA_LIBDIRS)
-        append!(JULIA_LIBDIRS, [joinpath(Sys.BINDIR, Base.LIBDIR, "julia"), joinpath(Sys.BINDIR, Base.LIBDIR)])
+        push!(JULIA_LIBDIRS, joinpath(Sys.BINDIR, Base.LIBDIR, "julia"))
+        @static if !Sys.islinux() || Sys.BINDIR != "/usr/bin"
+            # avoid adding /usr/lib to LD_LIBRARY_PATH on linux
+            push!(JULIA_LIBDIRS, joinpath(Sys.BINDIR, Base.LIBDIR))
+        end
         # Windows needs to see the BINDIR as well
         @static if Sys.iswindows()
             push!(JULIA_LIBDIRS, Sys.BINDIR)
