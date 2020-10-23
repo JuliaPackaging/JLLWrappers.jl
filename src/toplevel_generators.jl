@@ -22,7 +22,7 @@ function generate_imports(src_name)
     # require greater and greater heroics for more and more complex packages.
     @static if VERSION < v"1.3.0-rc4"
         return quote
-            error("Unable to use $(src_name)_jll on Julia versions older than 1.3!")
+            error("Unable to use $($(src_name))_jll on Julia versions older than 1.3!")
         end
     elseif VERSION < v"1.6.0-DEV"
         # Use slow Pkg-based Artifacts
