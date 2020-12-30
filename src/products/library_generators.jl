@@ -58,8 +58,11 @@ macro init_library_product(product_name, product_path, dlopen_flags)
             global $(path_name) = joinpath(artifact_dir, $(product_path))
             # Manually `dlopen()` this right now so that future invocations
             # of `ccall` with its path/SONAME will find this path immediately.
-            global $(handle_name) = dlopen($(path_name), $(dlopen_flags))
-            push!(LIBPATH_list, joinpath(artifact_dir, $(dirname(product_path))))
+            # dlopen_flags === nothing means to not dlopen the library.
+            if $(dlopen_flags) !== nothing
+                global $(handle_name) = dlopen($(path_name), $(dlopen_flags))
+                push!(LIBPATH_list, joinpath(artifact_dir, $(dirname(product_path))))
+            end
         end,
         init_new_library_product(product_name),
     )
