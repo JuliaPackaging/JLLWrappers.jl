@@ -58,10 +58,11 @@ macro declare_executable_product(product_name)
 end
 
 macro init_executable_product(product_name, product_path)
+    preference_name = string(product_name, "_path")
     path_name = Symbol(string(product_name, "_path"))
     return esc(quote
         # Locate the executable on-disk, store into $(path_name)
-        global $(path_name) = joinpath(artifact_dir, $(product_path))
+        global $(path_name) = @load_preference($(preference_name), joinpath(artifact_dir, $(product_path)))
 
         # Add this executable's directory onto the list of PATH's that we'll need to expose to dependents
         push!(PATH_list, joinpath(artifact_dir, $(dirname(product_path))))
