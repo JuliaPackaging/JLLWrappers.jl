@@ -52,7 +52,7 @@ end
 
 
 """
-emit_preference_path_load(pref_name, default_value)
+    emit_preference_path_load(pref_name, default_value)
 
 On Julia 1.6+, emits a `load_preference()` call for the given preference name,
 with the given default value.  On Julia 1.5-, simply emits the default value.
