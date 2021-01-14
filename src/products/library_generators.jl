@@ -43,7 +43,7 @@ macro init_library_product(product_name, product_path, dlopen_flags)
     path_name = Symbol(string(product_name, "_path"))
     preference_name = string(product_name, "_path")
     return excat(quote
-            global $(path_name) = @load_preference($(preference_name), joinpath(artifact_dir, $(product_path)))
+            global $(path_name) = $(emit_preference_path_load(preference_name, product_path))
             # Manually `dlopen()` this right now so that future invocations
             # of `ccall` with its path/SONAME will find this path immediately.
             # dlopen_flags === nothing means to not dlopen the library.
