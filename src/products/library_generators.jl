@@ -40,8 +40,8 @@ end
 
 macro init_library_product(product_name, product_path, dlopen_flags)
     handle_name = Symbol(string(product_name, "_handle"))
-    path_name = Symbol(string(product_name, "_path"))
     preference_name = string(product_name, "_path")
+    path_name = Symbol(preference_name)
     return excat(quote
             global $(path_name) = $(emit_preference_path_load(preference_name, product_path))
             # Manually `dlopen()` this right now so that future invocations

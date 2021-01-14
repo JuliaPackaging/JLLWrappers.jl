@@ -59,7 +59,7 @@ end
 
 macro init_executable_product(product_name, product_path)
     preference_name = string(product_name, "_path")
-    path_name = Symbol(string(product_name, "_path"))
+    path_name = Symbol(preference_name)
     return esc(quote
         # Locate the executable on-disk, store into $(path_name)
         global $(path_name) = $(emit_preference_path_load(preference_name, product_path))

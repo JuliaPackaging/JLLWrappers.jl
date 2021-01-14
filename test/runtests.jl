@@ -15,7 +15,7 @@ module TestJLL end
         # Prepare some overrides for various products
         @static if VERSION >= v"1.6.0-DEV"
             set_preferences!(joinpath(dir, "LocalPreferences.toml"), "Vulkan_Headers_jll", "vulkan_hpp_path" => "foo")
-            set_preferences!(joinpath(dir, "LocalPreferences.toml"), "HelloWorldC_jll", "goodbye_world" => "goodbye")
+            set_preferences!(joinpath(dir, "LocalPreferences.toml"), "HelloWorldC_jll", "goodbye_world_path" => "goodbye")
             set_preferences!(joinpath(dir, "LocalPreferences.toml"), "OpenLibm_jll", "libnonexisting_path" => "libreallynonexisting")
         end
 
