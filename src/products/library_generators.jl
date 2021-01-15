@@ -18,7 +18,7 @@ macro declare_library_product(product_name, product_soname)
         quote
             # These will be filled in by init_library_product()
             $(handle_name) = C_NULL
-            $(path_name) = ""
+            $(path_name) = $(emit_preference_path_load(string(product_name, "_path")))
             function $(get_path_name)()
                 return $(path_name)::String
             end
@@ -43,7 +43,10 @@ macro init_library_product(product_name, product_path, dlopen_flags)
     preference_name = string(product_name, "_path")
     path_name = Symbol(preference_name)
     return excat(quote
-            global $(path_name) = $(emit_preference_path_load(preference_name, product_path))
+            global $(path_name)
+            if $(path_name) === nothing
+                $(path_name) = joinpath(artifact_dir, $(product_path))
+            end
             # Manually `dlopen()` this right now so that future invocations
             # of `ccall` with its path/SONAME will find this path immediately.
             # dlopen_flags === nothing means to not dlopen the library.

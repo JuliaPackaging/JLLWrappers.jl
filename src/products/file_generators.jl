@@ -3,7 +3,7 @@ macro declare_file_product(product_name)
     path_name = Symbol(string(product_name, "_path"))
     return esc(quote
         # These will be filled in by init_file_product().
-        $(path_name) = ""
+        $(path_name) = $(emit_preference_path_load(string(product_name, "_path")))
         $(product_name) = ""
         function $(get_path_name)()
             return $(path_name)::String
@@ -12,11 +12,13 @@ macro declare_file_product(product_name)
 end
 
 macro init_file_product(product_name, product_path)
-    preference_name = string(product_name, "_path")
-    path_name = Symbol(preference_name)
+    path_name = Symbol(string(product_name, "_path"))
     return esc(quote
+        global $(path_name)
         # FileProducts are very simple, and we maintain the `_path` suffix version for consistency
-        global $(path_name) = $(emit_preference_path_load(preference_name, product_path))
+        if $(path_name) === nothing
+            $(path_name) = joinpath(artifact_dir, $(product_path))
+        end
         global $(product_name) = $(path_name)
     end)
 end
