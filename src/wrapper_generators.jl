@@ -2,13 +2,14 @@ include("products/executable_generators.jl")
 include("products/file_generators.jl")
 include("products/library_generators.jl")
 
-macro generate_wrapper_header(src_name)
+macro generate_wrapper_header(src_name, override_path = nothing)
     pkg_dir = dirname(dirname(String(__source__.file)))
+    override = something(override_path,joinpath(dirname(pkg_dir), "override"))
     return esc(quote
         function find_artifact_dir()
             # We determine at compile-time whether our JLL package has been dev'ed and overridden
-            @static if isdir(joinpath(dirname($(pkg_dir)), "override"))
-                return joinpath(dirname($(pkg_dir)), "override")
+            @static if isdir($override)
+                return $override
             else
                 # We explicitly use `macrocall` here so that we can manually pass the `__source__`
                 # argument, to avoid `@artifact_str` trying to lookup `Artifacts.toml` here.
