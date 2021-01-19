@@ -33,9 +33,9 @@ function generate_imports(src_name)
             HostPlatform() = platform_key_abi()
         end
     else
-        # Use fast stdlib-based Artifacts
+        # Use fast stdlib-based Artifacts + Preferences
         return quote
-            using Libdl, Artifacts, Base.BinaryPlatforms
+            using Libdl, Artifacts, Preferences, Base.BinaryPlatforms
             using Artifacts: load_artifacts_toml, unpack_platform
             using Base.BinaryPlatforms: triplet, select_platform
         end

@@ -49,3 +49,23 @@ macro generate_init_footer()
         LIBPATH[] = join(vcat(LIBPATH_list, Base.invokelatest(JLLWrappers.get_julia_libpaths))::Vector{String}, $(pathsep))
     end)
 end
+
+
+"""
+    emit_preference_path_load(pref_name, default_value)
+
+On Julia 1.6+, emits a `load_preference()` call for the given preference name,
+returning `nothing` if it is not loaded.  On Julia v1.5-, always returns `nothing`.
+"""
+function emit_preference_path_load(pref_name)
+    # Can't use `Preferences.jl` on older Julias, just always use the default value in that case
+    @static if VERSION < v"1.6.0-DEV"
+        return quote
+            nothing
+        end
+    else
+        return quote
+            @load_preference($(pref_name), nothing)
+        end
+    end
+end

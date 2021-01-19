@@ -49,21 +49,27 @@ function declare_new_executable_product(product_name)
 end
 
 macro declare_executable_product(product_name)
+    path_name = string(product_name, "_path")
     return excat(
         # We will continue to support `withenv`-style for as long as we must
         declare_old_executable_product(product_name),
         # We will, however, urge users to move to the thread-safe `addenv`-style on Julia 1.6+
         declare_new_executable_product(product_name),
+        # Perform a compile-time load of a path preference override
+        :($(Symbol(path_name)) = $(emit_preference_path_load(path_name))),
     )
 end
 
 macro init_executable_product(product_name, product_path)
     path_name = Symbol(string(product_name, "_path"))
     return esc(quote
+        global $(path_name)
         # Locate the executable on-disk, store into $(path_name)
-        global $(path_name) = joinpath(artifact_dir, $(product_path))
+        if $(path_name) === nothing
+            $(path_name) = joinpath(artifact_dir, $(product_path))
+        end
 
         # Add this executable's directory onto the list of PATH's that we'll need to expose to dependents
-        push!(PATH_list, joinpath(artifact_dir, $(dirname(product_path))))
+        push!(PATH_list, dirname($(path_name)))
     end)
 end
