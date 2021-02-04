@@ -35,7 +35,7 @@ function generate_imports(src_name)
     else
         # Use fast stdlib-based Artifacts + Preferences
         return quote
-            using Libdl, Artifacts, Preferences, Base.BinaryPlatforms
+            using Libdl, Artifacts, JLLWrappers.Preferences, Base.BinaryPlatforms
             using Artifacts: load_artifacts_toml, unpack_platform
             using Base.BinaryPlatforms: triplet, select_platform
         end
