@@ -2,6 +2,7 @@ using JLLWrappers
 using Pkg
 using Test
 
+# We use preferences only in Julia v1.6+
 @static if VERSION >= v"1.6.0-DEV"
     using Preferences
 end
