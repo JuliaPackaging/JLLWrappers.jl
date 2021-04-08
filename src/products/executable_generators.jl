@@ -2,6 +2,20 @@ function declare_old_executable_product(product_name)
     path_name = Symbol(string(product_name, "_path"))
     return quote
         # This is the old-style `withenv()`-based function
+        """
+            $($product_name)(f::Function; adjust_PATH::Bool=true, adjust_LIBPATH::Bool=true)
+
+        An `ExecutableProduct` wrapper that supports the execution of $($product_name).
+
+        # Example
+        ```julia
+        $($product_name)() do exe
+            run(`\$exe \$arguments`)
+        end
+        ```
+
+        !!! compat "Julia 1.0"
+        """
         function $(product_name)(f::Function; adjust_PATH::Bool = true, adjust_LIBPATH::Bool = true)
             # We sub off to a shared function to avoid compiling the same thing over and over again
             return Base.invokelatest(
@@ -30,6 +44,19 @@ function declare_new_executable_product(product_name)
         path_name = Symbol(string(product_name, "_path"))
         return quote
             # This is the new-style `addenv()`-based function
+            @doc """
+                $($product_name)(; adjust_PATH::Bool=true, adjust_LIBPATH::Bool=true) -> Cmd
+
+            An `ExecutableProduct` wrapper that supports the execution of $($product_name).
+            This wrapper is thread-safe and should be preferred on Julia 1.6+.
+
+            # Example
+            ```julia
+            run(`\$($($product_name)()) \$arguments`)
+            ```
+
+            !!! compat "Julia 1.6"
+            """
             function $(product_name)(; adjust_PATH::Bool = true, adjust_LIBPATH::Bool = true)
                 env = Base.invokelatest(
                     JLLWrappers.adjust_ENV!,
