@@ -14,7 +14,7 @@ function declare_old_executable_product(product_name)
         end
         ```
 
-        !!! compat "Julia 1.0"
+        !!! compat "Julia 1.3"
         """
         function $(product_name)(f::Function; adjust_PATH::Bool = true, adjust_LIBPATH::Bool = true)
             # We sub off to a shared function to avoid compiling the same thing over and over again
