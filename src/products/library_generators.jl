@@ -2,7 +2,7 @@ macro declare_library_product(product_name, product_soname)
     handle_name = Symbol(string(product_name, "_handle"))
     get_path_name = Symbol(string("get_", product_name, "_path"))
     path_name = Symbol(string(product_name, "_path"))
-    @static if VERSION < v"1.6.0-DEV"
+    @static if VERSION < v"1.6.0-DEV" || libc(HostPlatform()) != "musl"
         lib_declaration = quote
             # On Julia 1.5-, this must be `const` and must be the SONAME
             const $(product_name) = $(product_soname)
@@ -10,6 +10,7 @@ macro declare_library_product(product_name, product_soname)
     else
         lib_declaration = quote
             # On Julia 1.6+, this doesn't have to be `const`!  Thanks Jeff!
+            # But this is needed only for Musl-based platforms.
             $(product_name) = ""
         end
     end
@@ -28,11 +29,12 @@ macro declare_library_product(product_name, product_soname)
 end
 
 function init_new_library_product(product_name)
-    @static if VERSION < v"1.6.0-DEV"
+    @static if VERSION < v"1.6.0-DEV" || libc(HostPlatform()) != "musl"
         return nothing
     else
         return quote
             # Initialize non-const variable export with the path to this product
+            # for Musl-based platforms.
             global $(product_name) = $(Symbol(string(product_name, "_path")))
         end
     end
