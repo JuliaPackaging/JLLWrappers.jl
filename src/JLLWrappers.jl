@@ -6,6 +6,7 @@ end
 
 if VERSION >= v"1.6.0-DEV"
     using Preferences
+    using Base.BinaryPlatforms
 end
 
 # We need to glue expressions together a lot
