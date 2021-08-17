@@ -51,7 +51,10 @@ macro init_library_product(product_name, product_path, dlopen_flags)
             # of `ccall` with its path/SONAME will find this path immediately.
             # dlopen_flags === nothing means to not dlopen the library.
             if $(dlopen_flags) !== nothing
-                global $(handle_name) = dlopen($(path_name), $(dlopen_flags))
+                global $(handle_name) = Base.invokelatest(
+                    JLLWrappers.musl_soname_workaround,
+                    dlopen($(path_name), $(dlopen_flags))
+                )
                 push!(LIBPATH_list, dirname($(path_name)))
             end
         end,
