@@ -136,7 +136,7 @@ function replace_musl_shortname(lib_handle::Ptr{Cvoid})
     end
 
     # Calculate the offset of `shortname` from the base pointer of the DSO object
-    shortname_offset = fieldoffset(musl_dso, findfirst(fieldnames(musl_dso) .== :shortname))
+    shortname_offset = fieldoffset(musl_dso, findfirst(==(:shortname), fieldnames(musl_dso)))
 
     # Replace the shortname with the basename of lib_path.  Note that, in general, this
     # should be the SONAME, but not always.  If we wanted to be pedantic, we should
