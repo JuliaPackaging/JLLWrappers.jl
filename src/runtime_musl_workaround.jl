@@ -28,6 +28,7 @@
 # [2] https://github.com/ifduyue/musl/blob/aad50fcd791e009961621ddfbe3d4c245fd689a3/ldso/dynlink.c#L1047-L1052
 # [3] https://github.com/ifduyue/musl/blob/aad50fcd791e009961621ddfbe3d4c245fd689a3/ldso/dynlink.c#L1043-L1044
 
+using Libdl
 
 # Use this to ensure the GC doesn't clean up values we insert into musl.
 manual_gc_roots = String[]
