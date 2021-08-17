@@ -131,7 +131,7 @@ function replace_musl_shortname(lib_handle::Ptr{Cvoid})
 
     # If the shortname is not NULL, break out.
     if dso.shortname != C_NULL
-        @debug("shortname != NULL!", ptr=shortname_ptr, value=unsafe_string(shortname_ptr))
+        @debug("shortname != NULL!", ptr=dso.shortname, value=unsafe_string(dso.shortname))
         return lib_handle
     end
 
@@ -144,5 +144,6 @@ function replace_musl_shortname(lib_handle::Ptr{Cvoid})
     new_shortname = basename(lib_path)
     push!(manual_gc_roots, new_shortname)
     unsafe_store!(Ptr{Ptr{UInt8}}(lib_handle + shortname_offset), pointer(new_shortname))
+    @debug("musl workaround successful", shortname=new_shortname)
     return lib_handle
 end
