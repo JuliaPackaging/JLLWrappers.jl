@@ -38,6 +38,49 @@ manual_gc_roots = String[]
 ## calculation ourselves, which is more error-prone.
 
 
+# Define ELF program header structure, depending on our bitwidth
+@static if Sys.WORD_SIZE == 32
+    struct Elf_Phdr
+        p_type::UInt32
+        p_offset::UInt32
+        p_vaddr::UInt32
+        p_paddr::UInt32
+        p_filesz::UInt32
+        p_memsz::UInt32
+        p_flags::UInt32
+        p_align::UInt32
+    end
+    struct ELF_DynEntry
+        d_tag::UInt32
+        # We drop the `d_un` union, and use only `d_val`, omitting `d_ptr`.
+        d_val::UInt32
+    end
+    else
+    struct Elf_Phdr
+        p_type::UInt32
+        p_flags::UInt32
+        p_offset::UInt64
+        p_vaddr::UInt64
+        p_paddr::UInt64
+        p_filesz::UInt64
+        p_memsz::UInt64
+        p_align::UInt64
+    end
+    struct ELF_DynEntry
+        d_tag::UInt64
+        # We drop the `d_un` union, and use only `d_val`, omitting `d_ptr`.
+        d_val::UInt64
+    end
+end
+
+# Taken from `include/elf.h`
+# https://github.com/ifduyue/musl/blob/aad50fcd791e009961621ddfbe3d4c245fd689a3/include/elf.h#L595
+const PT_DYNAMIC = 2
+# Taken from `include/elf.h`
+#https://github.com/ifduyue/musl/blob/aad50fcd791e009961621ddfbe3d4c245fd689a3/include/elf.h#L735
+const DT_SONAME = 14
+const DT_STRTAB = 5
+
 # This structure taken from `libc.h`
 # https://github.com/ifduyue/musl/blob/aad50fcd791e009961621ddfbe3d4c245fd689a3/src/internal/libc.h#L14-L18
 struct musl_tls_module
@@ -61,7 +104,7 @@ struct musl_dso
     next::Ptr{musl_dso}
     prev::Ptr{musl_dso}
 
-    phdr::Ptr{Cvoid}
+    phdr::Ptr{Elf_Phdr}
     phnum::Cint
     phentsize::Csize_t
 
@@ -114,6 +157,37 @@ struct musl_dso
     got::Ptr{Csize_t}
 end
 
+function parse_soname(dso::musl_dso)
+    soname_offset = nothing
+    strtab_addr = nothing
+
+    for idx in 1:dso.phnum
+        phdr = unsafe_load(Ptr{Elf_Phdr}(dso.phdr), idx)
+        if phdr.p_type == PT_DYNAMIC
+            @debug("Found dynamic section", idx, phdr.p_vaddr, phdr.p_memsz)
+            dyn_entries = Ptr{ELF_DynEntry}(phdr.p_vaddr + dso.base)
+            num_dyn_entries = div(phdr.p_memsz, sizeof(ELF_DynEntry))
+            for dyn_idx in 1:num_dyn_entries
+                de = unsafe_load(dyn_entries, dyn_idx)
+                if de.d_tag == DT_SONAME
+                    @debug("Found SONAME dynamic entry!", de.d_tag, de.d_val)
+                    soname_offset = de.d_val
+                elseif de.d_tag == DT_STRTAB
+                    @debug("Found STRTAB dynamic entry!", de.d_tag, de.d_val)
+                    strtab_addr = Ptr{UInt8}(de.d_val + dso.base)
+                end
+            end
+        end
+    end
+
+    if strtab_addr !== nothing && soname_offset !== nothing
+        soname = unsafe_string(strtab_addr + soname_offset)
+        @debug("Found SONAME entry", soname)
+        return soname
+    end
+    return nothing
+end
+
 function replace_musl_shortname(lib_handle::Ptr{Cvoid})
     # First, find the absolute path of the library we're talking about
     lib_path = abspath(dlpath(lib_handle))
@@ -138,10 +212,9 @@ function replace_musl_shortname(lib_handle::Ptr{Cvoid})
     # Calculate the offset of `shortname` from the base pointer of the DSO object
     shortname_offset = fieldoffset(musl_dso, findfirst(==(:shortname), fieldnames(musl_dso)))
 
-    # Replace the shortname with the basename of lib_path.  Note that, in general, this
-    # should be the SONAME, but not always.  If we wanted to be pedantic, we should
-    # actually parse out the SONAME of this object.  But we don't want to be.
-    new_shortname = basename(lib_path)
+    # Replace the shortname with the SONAME of this loaded ELF object.  If it does not
+    # exist, use the basename() of the library.
+    new_shortname = something(parse_soname(dso), basename(lib_path))
     push!(manual_gc_roots, new_shortname)
     unsafe_store!(Ptr{Ptr{UInt8}}(lib_handle + shortname_offset), pointer(new_shortname))
     @debug("musl workaround successful", shortname=new_shortname)
