@@ -127,17 +127,21 @@ function get_musl_dso_type(musl_version::VersionNumber)
     end
 end
 
+_musl_version = Ref{Union{Nothing,VersionNumber}}(nothing)
 function get_musl_version()
+    if _musl_version[] !== nothing
+        return _musl_version[]
+    end
+
     stderr = IOBuffer()
     run(pipeline(ignorestatus(`/lib/libc.musl-x86_64.so.1 --version`); stdout=Base.devnull, stderr))
 
-    version = nothing
     for line in split(String(take!(stderr)), "\n")
         if startswith(line, "Version ")
-            version = parse(VersionNumber, line[9:end])
+            _musl_version[] = parse(VersionNumber, line[9:end])
         end
     end
-    return version
+    return _musl_version[]
 end
 
 function parse_soname(dso::musl_dso)
