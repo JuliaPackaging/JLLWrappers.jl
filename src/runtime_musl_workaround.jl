@@ -92,69 +92,52 @@ struct musl_tls_module
     offset::Csize_t
 end
 
-# This structure taken from `ldso/dynlink.c`
-# https://github.com/ifduyue/musl/blob/aad50fcd791e009961621ddfbe3d4c245fd689a3/ldso/dynlink.c#L53-L107
-struct musl_dso
-    # Things we find mildly interesting
-    base::Ptr{Cvoid}
-    name::Ptr{UInt8}
+abstract type musl_dso end
+include(joinpath(@__DIR__, "musl_abi/dso_v1.2.2.jl"))
+include(joinpath(@__DIR__, "musl_abi/dso_v1.1.24.jl"))
+include(joinpath(@__DIR__, "musl_abi/dso_v1.1.22.jl"))
+include(joinpath(@__DIR__, "musl_abi/dso_v1.1.17.jl"))
+include(joinpath(@__DIR__, "musl_abi/dso_v1.1.13.jl"))
+include(joinpath(@__DIR__, "musl_abi/dso_v1.1.12.jl"))
+include(joinpath(@__DIR__, "musl_abi/dso_v1.1.9.jl"))
+include(joinpath(@__DIR__, "musl_abi/dso_v1.1.3.jl"))
 
-    # The wasteland of things we don't care about
-    dynv::Ptr{Csize_t}
-    next::Ptr{musl_dso}
-    prev::Ptr{musl_dso}
+function get_musl_dso_type(musl_version::VersionNumber)
+    if musl_version >= v"1.2.2"
+        return musl_dso_v1_2_2
+    elseif musl_version >= v"1.1.24"
+        return musl_dso_v1_1_24
+    elseif musl_version >= v"1.1.22"
+        return musl_dso_v1_1_22
+    elseif musl_version >= v"1.1.17"
+        return musl_dso_v1_1_17
+    elseif musl_version >= v"1.1.13"
+        return musl_dso_v1_1_13
+    elseif musl_version >= v"1.1.12"
+        return musl_dso_v1_1_12
+    elseif musl_version >= v"1.1.10"
+        # I guess v1.1.9's changes didn't stick.  :P
+        return musl_dso_v1_1_3
+    elseif musl_version >= v"1.1.9"
+        return musl_dso_v1_1_9
+    elseif musl_version >= v"1.1.3"
+        return musl_dso_v1_1_3
+    else
+        return nothing
+    end
+end
 
-    phdr::Ptr{Elf_Phdr}
-    phnum::Cint
-    phentsize::Csize_t
+function get_musl_version()
+    stderr = IOBuffer()
+    run(pipeline(ignorestatus(`/lib/libc.musl-x86_64.so.1 --version`); stdout=Base.devnull, stderr))
 
-    syms::Ptr{Cvoid}
-    hashtab::Ptr{Cvoid}
-    ghashtab::Ptr{Cvoid}
-    versym::Ptr{Int16}
-    strings::Ptr{UInt8}
-    syms_next::Ptr{musl_dso}
-    lazy_next::Ptr{musl_dso}
-    lazy::Ptr{Csize_t}
-    lazy_cnt::Csize_t
-
-    map::Ptr{Cuchar}
-    map_len::Csize_t
-
-    # We assume that dev_t and ino_t are always `uint64_t`, even on 32-bit systems.
-    dev::UInt64
-    ino::UInt64
-    relocated::Cchar
-    constructed::Cchar
-    kernel_mapped::Cchar
-    mark::Cchar
-    bfs_built::Cchar
-    runtime_loaded::Cchar
-    # NOTE: struct layout rules should insert two bytes of space here
-    deps::Ptr{Ptr{musl_dso}}
-    needed_by::Ptr{musl_dso}
-    ndeps_direct::Csize_t
-    next_dep::Csize_t
-    ctor_visitor::Cint
-    rpath_orig::Ptr{UInt8}
-    rpath::Ptr{UInt8}
-
-    tls::musl_tls_module
-    tls_id::Csize_t
-    relro_start::Csize_t
-    relro_end::Csize_t
-    new_dtv::Ptr{Ptr{Cuint}}
-    new_tls::Ptr{UInt8}
-    td_index::Ptr{Cvoid}
-    fini_next::Ptr{musl_dso}
-
-    # Finally!  The field we're interested in!
-    shortname::Ptr{UInt8}
-
-    # We'll put this stuff at the end because it might be interesting to someone somewhere
-    loadmap::Ptr{Cvoid}
-    funcdesc::Ptr{Cvoid}
-    got::Ptr{Csize_t}
+    version = nothing
+    for line in split(String(take!(stderr)), "\n")
+        if startswith(line, "Version ")
+            version = parse(VersionNumber, line[9:end])
+        end
+    end
+    return version
 end
 
 function parse_soname(dso::musl_dso)
@@ -196,7 +179,19 @@ function replace_musl_shortname(lib_handle::Ptr{Cvoid})
     # itself passes back to us.  Check to make sure it's what we expect, by
     # inspecting the `name` field.  If it's not, something has gone wrong,
     # and we should stop before touching anything else.
-    dso = unsafe_load(Ptr{musl_dso}(lib_handle))
+    musl_version = get_musl_version()
+    if musl_version === nothing
+        @debug("Unable to auto-detect musl version!", musl_version)
+        return lib_handle
+    end
+    @debug("Auto-detected musl version", version=musl_version)
+
+    dso_type = get_musl_dso_type(musl_version)
+    if dso_type === nothing
+        @debug("Unsupported musl ABI version", musl_version)
+        return lib_handle
+    end
+    dso = unsafe_load(Ptr{dso_type}(lib_handle))
     dso_name = abspath(unsafe_string(dso.name))
     if dso_name != lib_path
         @debug("Unable to synchronize to DSO structure", name=dso_name, path=lib_path)
@@ -205,18 +200,18 @@ function replace_musl_shortname(lib_handle::Ptr{Cvoid})
 
     # If the shortname is not NULL, break out.
     if dso.shortname != C_NULL
-        @debug("shortname != NULL!", ptr=dso.shortname, value=unsafe_string(dso.shortname))
+        @debug("shortname != NULL!", name=dso_name, ptr=dso.shortname, value=unsafe_string(dso.shortname))
         return lib_handle
     end
 
     # Calculate the offset of `shortname` from the base pointer of the DSO object
-    shortname_offset = fieldoffset(musl_dso, findfirst(==(:shortname), fieldnames(musl_dso)))
+    shortname_offset = fieldoffset(dso_type, findfirst(==(:shortname), fieldnames(dso_type)))
 
     # Replace the shortname with the SONAME of this loaded ELF object.  If it does not
     # exist, use the basename() of the library.
     new_shortname = something(parse_soname(dso), basename(lib_path))
     push!(manual_gc_roots, new_shortname)
     unsafe_store!(Ptr{Ptr{UInt8}}(lib_handle + shortname_offset), pointer(new_shortname))
-    @debug("musl workaround successful", shortname=new_shortname)
+    @debug("musl workaround successful", name=dso_name, shortname=new_shortname)
     return lib_handle
 end
