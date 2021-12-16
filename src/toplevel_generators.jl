@@ -74,7 +74,6 @@ This method generates the toplevel definitions common to all JLL packages, such 
 `is_available()`, the `PATH` and `LIBPATH` symbols, etc....
 """
 function generate_toplevel_definitions(src_name, __source__)
-    pkg_dir = dirname(String(__source__.file))
     return quote
         """
             is_available()
@@ -120,6 +119,12 @@ function generate_wrapper_load(src_name, pkg_uuid, __source__)
         # Load Artifacts.toml file and select best platform at compile-time, since this is
         # running at toplevel, and therefore will be run completely at compile-time.  We use
         # a `let` block here to avoid storing unnecessary data in our `.ji` files
+
+        if @isdefined(augment_platform!)
+            const host_platform = augment_platform!(HostPlatform())
+        else
+            const host_platform = nothing
+        end
         best_wrapper = let
             artifacts_toml = joinpath($(pkg_dir), "..", "Artifacts.toml")
             valid_wrappers = Dict{Platform,String}()
@@ -158,13 +163,19 @@ function generate_wrapper_load(src_name, pkg_uuid, __source__)
                 end
 
                 # From the available options, choose the best wrapper script
-                select_platform(valid_wrappers)
+                # The two argument `select_platform` is notably slower, so micro-optimize this by
+                # only calling it when necessary.
+                if host_platform !== nothing
+                    select_platform(valid_wrappers, host_platform)
+                else
+                    select_platform(valid_wrappers)
+                end
             end
         end
 
         # Load in the wrapper, if it's not `nothing`!
         if best_wrapper === nothing
-            @debug(string("Unable to load ", $(src_name), "; unsupported platform ", triplet(HostPlatform())))
+            @debug(string("Unable to load ", $(src_name), "; unsupported platform ", triplet(host_platform)))
             is_available() = false
         else
             Base.include($(Symbol("$(src_name)_jll")), best_wrapper)
