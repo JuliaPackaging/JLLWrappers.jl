@@ -9,6 +9,8 @@ macro generate_wrapper_header(src_name)
             # We determine at compile-time whether our JLL package has been dev'ed and overridden
             @static if isdir(joinpath(dirname($(pkg_dir)), "override"))
                 return joinpath(dirname($(pkg_dir)), "override")
+            elseif @isdefined(augment_platform!) && VERSION >= v"1.6"
+                $(Expr(:macrocall, Symbol("@artifact_str"), __source__, src_name, :(host_platform)))
             else
                 # We explicitly use `macrocall` here so that we can manually pass the `__source__`
                 # argument, to avoid `@artifact_str` trying to lookup `Artifacts.toml` here.
