@@ -24,8 +24,8 @@ macro generate_init_header(dependencies...)
     if !isempty(dependencies)
         for dep in dependencies
             push!(deps_path_add, quote
-                append!(PATH_list, $(dep).PATH_list)
-                append!(LIBPATH_list, $(dep).LIBPATH_list)
+                isdefined($(dep), :PATH_list) && append!(PATH_list, $(dep).PATH_list)
+                isdefined($(dep), :LIBPATH_list) && append!(LIBPATH_list, $(dep).LIBPATH_list)
             end)
         end
     end
