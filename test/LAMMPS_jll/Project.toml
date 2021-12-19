@@ -1,0 +1,21 @@
+name = "LAMMPS_jll"
+uuid = "5b3ab26d-9607-527c-88ea-8fe5ba57cafe"
+version = "1.0.1+2"
+
+[deps]
+Artifacts = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
+CompilerSupportLibraries_jll = "e66e0078-7015-5450-92f7-15fbd957f2ae"
+JLLWrappers = "692b3bcd-3c85-4b1f-b108-f13ce0eb3210"
+LazyArtifacts = "4af54fe1-eca0-43a8-85a7-787d91b784e3"
+Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
+MPICH_jll = "7cb0a576-ebde-5e09-9194-50597f1243b4"
+MPItrampoline_jll = "f1f71cc9-e9ae-5b93-9b94-4fe0e1ad3748"
+MicrosoftMPI_jll = "9237b28f-5490-5468-be7b-bb81f5f5e6cf"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+Preferences = "21216c6a-2e73-6563-6e65-726566657250"
+TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+
+[compat]
+JLLWrappers = "1.4.0"
+MPItrampoline_jll = "2"
+julia = "1.6"
