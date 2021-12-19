@@ -13,6 +13,9 @@ module TestJLL end
     mktempdir() do dir
         Pkg.activate(dir)
 
+        # actually use the development version of JLLWrappers
+        Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "..")))
+
         # Prepare some overrides for various products
         @static if VERSION >= v"1.6.0-DEV"
             set_preferences!(joinpath(dir, "LocalPreferences.toml"), "Vulkan_Headers_jll", "vulkan_hpp_path" => "foo")
