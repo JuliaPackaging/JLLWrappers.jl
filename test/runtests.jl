@@ -87,5 +87,45 @@ module TestJLL end
         if Sys.iswindows()
             @test Sys.BINDIR ∈ JLLWrappers.get_julia_libpaths()
         end
+
+        # Package with a augment_platform!
+        @static if VERSION >= v"1.6.0-DEV"
+            Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "LAMMPS_jll")))
+            if VERSION < v"1.7"
+                # On 1.6 we lazyily download the missing artifact, causing output to stderr
+                @eval TestJLL using LAMMPS_jll
+            else
+                @test_nowarn @eval TestJLL using LAMMPS_jll
+            end
+            if @eval TestJLL LAMMPS_jll.is_available()
+                @test @eval TestJLL LAMMPS_jll.abi == (Sys.iswindows() ? :MicrosoftMPI : :MPICH)
+                @test isfile(@eval TestJLL LAMMPS_jll.liblammps_path)
+                @test isfile(@eval TestJLL LAMMPS_jll.get_liblammps_path())
+                @test isdir(@eval TestJLL LAMMPS_jll.artifact_dir)
+                @test occursin(Sys.BINDIR, @eval TestJLL LAMMPS_jll.LIBPATH[])
+
+                artifact_dir = @eval TestJLL LAMMPS_jll.artifact_dir
+
+                if !Sys.iswindows()
+                    @eval TestJLL LAMMPS_jll.set_abi(:MPItrampoline)
+                    script = """
+                    using Test
+                    using LAMMPS_jll
+                    @test LAMMPS_jll.abi == "MPItrampoline"
+                    if !LAMMPS_jll.is_available()
+                        @warn "LAMMPS_jll is not available, skipped test" LAMMPS_jll.host_platform
+                        exit()
+                    end
+                    @test LAMMPS_jll.is_available()
+                    @test isdir(LAMMPS_jll.artifact_dir)
+                    @test LAMMPS_jll.artifact_dir !== $(repr(artifact_dir))
+                    """
+                    @test success(pipeline(`$(Base.julia_cmd()) --project=$dir -e $script`, stderr=stderr, stdout=stdout))
+                end
+            else
+                platform = @eval TestJLL LAMMPS_jll.host_platform
+                @warn "LAMMPS_jll is not available, skipped test" platform
+            end
+        end
     end
 end
