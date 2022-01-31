@@ -133,10 +133,14 @@ function generate_wrapper_load(src_name, pkg_uuid, __source__)
             # Helper function to parse triplets for us
             $(platform_parse_compat())
             function make_wrapper_dict(dir, x)
-                return Dict(
-                    parse_wrapper_platform(basename(f)[1:end-3]) =>
-                        joinpath(dir, "wrappers", f) for f in x
-                )
+                # (1) make the Dict type inferrable
+                # (2) avoid creation of Generators so that we don't have to compile
+                #     package-specific Generator-closures
+                d = Dict{Platform,String}()
+                for f in x
+                    d[parse_wrapper_platform(basename(f)[1:end-3])] = joinpath(dir, "wrappers", f)
+                end
+                return d
             end
 
             # If it's a Dict, that means this is an AnyPlatform artifact, act accordingly:
@@ -145,7 +149,10 @@ function generate_wrapper_load(src_name, pkg_uuid, __source__)
             else
                 # Otherwise, it's a Vector, and we must select the best platform
                 # First, find all wrappers on-disk, parse their platforms, and match:
-                wrapper_files = filter(x -> endswith(x, ".jl"), readdir(joinpath($(pkg_dir), "wrappers")))
+                wrapper_files = String[]
+                for x in readdir(joinpath($(pkg_dir), "wrappers"))
+                    endswith(x, ".jl") && push!(wrapper_files, x)   # avoid creation of Generators...
+                end
                 wrappers = make_wrapper_dict($(pkg_dir), wrapper_files)
                 for e in artifacts
                     platform = unpack_platform(e, $(jll_name), artifacts_toml)
