@@ -125,57 +125,61 @@ function generate_wrapper_load(src_name, pkg_uuid, __source__)
         else
             const host_platform = nothing
         end
-        best_wrapper = let
-            artifacts_toml = joinpath($(pkg_dir), "..", "Artifacts.toml")
-            valid_wrappers = Dict{Platform,String}()
-            artifacts = load_artifacts_toml(artifacts_toml; pkg_uuid=$(pkg_uuid))[$(src_name)]
 
-            # Helper function to parse triplets for us
-            $(platform_parse_compat())
-            function make_wrapper_dict(dir, x)
-                # (1) make the Dict type inferrable
-                # (2) avoid creation of Generators so that we don't have to compile
-                #     package-specific Generator-closures
-                d = Dict{Platform,String}()
-                for f in x
-                    d[parse_wrapper_platform(basename(f)[1:end-3])] = joinpath(dir, "wrappers", f)
-                end
-                return d
-            end
+        best_wrapper = $(emit_preference_path_load("wrapper_path"))
+        if best_wrapper === nothing
+            best_wrapper = let
+                artifacts_toml = joinpath($(pkg_dir), "..", "Artifacts.toml")
+                valid_wrappers = Dict{Platform,String}()
+                artifacts = load_artifacts_toml(artifacts_toml; pkg_uuid=$(pkg_uuid))[$(src_name)]
 
-            # If it's a Dict, that means this is an AnyPlatform artifact, act accordingly:
-            if isa(artifacts, Dict)
-                joinpath($(pkg_dir), "wrappers", "any.jl")
-            else
-                # Otherwise, it's a Vector, and we must select the best platform
-                # First, find all wrappers on-disk, parse their platforms, and match:
-                wrapper_files = String[]
-                for x in readdir(joinpath($(pkg_dir), "wrappers"))
-                    endswith(x, ".jl") && push!(wrapper_files, x)   # avoid creation of Generators...
-                end
-                wrappers = make_wrapper_dict($(pkg_dir), wrapper_files)
-                for e in artifacts
-                    platform = unpack_platform(e, $(jll_name), artifacts_toml)
-
-                    # Filter platforms based on what wrappers we've generated on-disk.
-                    # Because the wrapper file naming strategy relies upon BB's assumptions of triplet
-                    # parsing, it can be somewhat fragile.  So we have loaded all the wrapper filenames
-                    # in, parsed them, and are now using `select_platform()` to match them, which is
-                    # much more robust.  This step avoids a disconnect between what is recorded in the
-                    # `Artifacts.toml` file and what wrappers are available on-disk.
-                    wrapper_file = select_platform(wrappers, platform)
-                    if wrapper_file !== nothing
-                        valid_wrappers[platform] = wrapper_file
+                # Helper function to parse triplets for us
+                $(platform_parse_compat())
+                function make_wrapper_dict(dir, x)
+                    # (1) make the Dict type inferrable
+                    # (2) avoid creation of Generators so that we don't have to compile
+                    #     package-specific Generator-closures
+                    d = Dict{Platform,String}()
+                    for f in x
+                        d[parse_wrapper_platform(basename(f)[1:end-3])] = joinpath(dir, "wrappers", f)
                     end
+                    return d
                 end
 
-                # From the available options, choose the best wrapper script
-                # The two argument `select_platform` is notably slower, so micro-optimize this by
-                # only calling it when necessary.
-                if host_platform !== nothing
-                    select_platform(valid_wrappers, host_platform)
+                # If it's a Dict, that means this is an AnyPlatform artifact, act accordingly:
+                if isa(artifacts, Dict)
+                    joinpath($(pkg_dir), "wrappers", "any.jl")
                 else
-                    select_platform(valid_wrappers)
+                    # Otherwise, it's a Vector, and we must select the best platform
+                    # First, find all wrappers on-disk, parse their platforms, and match:
+                    wrapper_files = String[]
+                    for x in readdir(joinpath($(pkg_dir), "wrappers"))
+                        endswith(x, ".jl") && push!(wrapper_files, x)   # avoid creation of Generators...
+                    end
+                    wrappers = make_wrapper_dict($(pkg_dir), wrapper_files)
+                    for e in artifacts
+                        platform = unpack_platform(e, $(jll_name), artifacts_toml)
+
+                        # Filter platforms based on what wrappers we've generated on-disk.
+                        # Because the wrapper file naming strategy relies upon BB's assumptions of triplet
+                        # parsing, it can be somewhat fragile.  So we have loaded all the wrapper filenames
+                        # in, parsed them, and are now using `select_platform()` to match them, which is
+                        # much more robust.  This step avoids a disconnect between what is recorded in the
+                        # `Artifacts.toml` file and what wrappers are available on-disk.
+                        wrapper_file = select_platform(wrappers, platform)
+                        if wrapper_file !== nothing
+                            valid_wrappers[platform] = wrapper_file
+                        end
+                    end
+
+                    # From the available options, choose the best wrapper script
+                    # The two argument `select_platform` is notably slower, so micro-optimize this by
+                    # only calling it when necessary.
+                    if host_platform !== nothing
+                        select_platform(valid_wrappers, host_platform)
+                    else
+                        select_platform(valid_wrappers)
+                    end
                 end
             end
         end
