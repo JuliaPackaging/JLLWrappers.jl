@@ -9,7 +9,7 @@ elseif Sys.isapple()
     const pathsep = ':'
 else
     const LIBPATH_env = "LD_LIBRARY_PATH"
-    const LIBPATH_default = ""
+    const LIBPATH_default = "/usr/lib:/usr/lib/julia"
     const pathsep = ':'
 end
 
