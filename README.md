@@ -1,6 +1,5 @@
 # JLLWrappers
 
-[![Build Status](https://travis-ci.com/JuliaPackaging/JLLWrappers.jl.svg?branch=master)](https://travis-ci.com/JuliaPackaging/JLLWrappers.jl)
 [![CI](https://github.com/JuliaPackaging/JLLWrappers.jl/workflows/CI/badge.svg)](https://github.com/JuliaPackaging/JLLWrappers.jl/actions?query=workflow%3ACI)
 [![Build Status](https://cloud.drone.io/api/badges/JuliaPackaging/JLLWrappers.jl/status.svg)](https://cloud.drone.io/JuliaPackaging/JLLWrappers.jl)
 [![deps](https://juliahub.com/docs/JLLWrappers/deps.svg)](https://juliahub.com/ui/Packages/JLLWrappers/7Zgw7?t=2)
