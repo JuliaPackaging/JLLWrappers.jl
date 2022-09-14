@@ -10,16 +10,23 @@ macro generate_wrapper_header(src_name)
             @static if isdir(joinpath(dirname($(pkg_dir)), "override"))
                 return joinpath(dirname($(pkg_dir)), "override")
             elseif @isdefined(augment_platform!) && VERSION >= v"1.6"
-                $(Expr(:macrocall, Symbol("@artifact_str"), __source__, src_name, :(host_platform)))
+                @static if VERSION >= v"1.9.0-DEV.XXXX"
+                    $(Expr(:macrocall, Symbol("@artifact_str"), __source__, src_name, :(host_platform), joinpath(pkg_dir, "..", "Artifacts.toml")))
+                else
+                    $(Expr(:macrocall, Symbol("@artifact_str"), __source__, src_name, :(host_platform)))
+                end
             else
                 # We explicitly use `macrocall` here so that we can manually pass the `__source__`
                 # argument, to avoid `@artifact_str` trying to lookup `Artifacts.toml` here.
-                return $(Expr(:macrocall, Symbol("@artifact_str"), __source__, src_name))
+                @static if VERSION >= v"1.9.0-DEV.XXXX"
+                    return $(Expr(:macrocall, Symbol("@artifact_str"), __source__, src_name, nothing, joinpath(pkg_dir, "..", "Artifacts.toml")))
+                else
+                    return $(Expr(:macrocall, Symbol("@artifact_str"), __source__, src_name))
+                end
             end
         end
     end)
 end
-
 
 macro generate_init_header(dependencies...)
     deps_path_add = Expr[]
