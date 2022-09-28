@@ -29,8 +29,12 @@ function declare_old_executable_product(product_name)
             )
         end
 
-        # This will eventually be replaced with a `Ref{String}`
-        $(path_name) = ""
+
+        @static if $global_typeassert_available
+            $(path_name)::Union{String,Nothing} = ""
+        else
+            $(path_name) = ""
+        end
         function $(Symbol(string("get_", product_name, "_path")))()
             return $(path_name)::String
         end

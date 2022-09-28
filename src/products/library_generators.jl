@@ -10,15 +10,24 @@ macro declare_library_product(product_name, product_soname)
     else
         lib_declaration = quote
             # On Julia 1.6+, this doesn't have to be `const`!  Thanks Jeff!
-            $(product_name) = ""
+            @static if $global_typeassert_available
+                $(product_name)::String = ""
+            else
+                $(product_name) = ""
+            end
         end
     end
-    
+
     return excat(
         quote
             # These will be filled in by init_library_product()
-            $(handle_name) = C_NULL
-            $(path_name) = $(emit_preference_path_load(string(product_name, "_path")))
+            @static if $global_typeassert_available
+                $(handle_name)::Ptr{Cvoid} = C_NULL
+                $(path_name)::Union{Nothing,String} = $(emit_preference_path_load(string(product_name, "_path")))
+            else
+                $(handle_name) = C_NULL
+                $(path_name) = $(emit_preference_path_load(string(product_name, "_path")))
+            end
             function $(get_path_name)()
                 return $(path_name)::String
             end
