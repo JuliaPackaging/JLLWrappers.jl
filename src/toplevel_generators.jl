@@ -115,7 +115,11 @@ function generate_wrapper_load(src_name, pkg_uuid, __source__)
     end
 
     return quote
-        global best_wrapper
+        @static if $global_typeassert_available
+            global best_wrapper::Union{Nothing,String}
+        else
+            global best_wrapper
+        end
         # Load Artifacts.toml file and select best platform at compile-time, since this is
         # running at toplevel, and therefore will be run completely at compile-time.  We use
         # a `let` block here to avoid storing unnecessary data in our `.ji` files
@@ -197,6 +201,7 @@ macro generate_main_file_header(src_name)
         generate_compiler_options(src_name),
         # import Artifacts module
         generate_imports(src_name),
+        global_typeassert_available ? :(global artifact_dir::String) : :()
     )
 end
 
