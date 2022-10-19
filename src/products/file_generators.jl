@@ -3,8 +3,13 @@ macro declare_file_product(product_name)
     path_name = Symbol(string(product_name, "_path"))
     return esc(quote
         # These will be filled in by init_file_product().
-        $(path_name) = $(emit_preference_path_load(string(product_name, "_path")))
-        $(product_name) = ""
+        @static if $global_typeassert_available
+            $(product_name)::String = ""
+            $(path_name)::Union{Nothing,String} = $(emit_preference_path_load(string(product_name, "_path")))
+        else
+            $(product_name) = ""
+            $(path_name) = $(emit_preference_path_load(string(product_name, "_path")))
+        end
         function $(get_path_name)()
             return $(path_name)::String
         end

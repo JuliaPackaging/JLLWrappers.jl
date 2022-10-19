@@ -115,7 +115,11 @@ function generate_wrapper_load(src_name, pkg_uuid, __source__)
     end
 
     return quote
-        global best_wrapper
+        @static if $global_typeassert_available
+            global best_wrapper::Union{Nothing,String}
+        else
+            global best_wrapper
+        end
         # Load Artifacts.toml file and select best platform at compile-time, since this is
         # running at toplevel, and therefore will be run completely at compile-time.  We use
         # a `let` block here to avoid storing unnecessary data in our `.ji` files
@@ -182,7 +186,7 @@ function generate_wrapper_load(src_name, pkg_uuid, __source__)
 
         # Load in the wrapper, if it's not `nothing`!
         if best_wrapper === nothing
-            @debug(string("Unable to load ", $(src_name), "; unsupported platform ", triplet(host_platform)))
+            @debug(string("Unable to load ", $(src_name), "; unsupported platform ", host_platform === nothing ? triplet(HostPlatform()) : triplet(host_platform)))
             is_available() = false
         else
             Base.include($(Symbol("$(src_name)_jll")), best_wrapper)
@@ -197,6 +201,7 @@ macro generate_main_file_header(src_name)
         generate_compiler_options(src_name),
         # import Artifacts module
         generate_imports(src_name),
+        global_typeassert_available ? :(global artifact_dir::String) : :()
     )
 end
 
