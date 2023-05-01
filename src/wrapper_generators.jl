@@ -17,6 +17,9 @@ macro generate_wrapper_header(src_name)
                 return $(Expr(:macrocall, Symbol("@artifact_str"), __source__, src_name))
             end
         end
+        if ccall(:jl_generating_output, Cint, ()) == 1
+            find_artifact_dir() # to precompile this into Pkgimage
+        end
     end)
 end
 
