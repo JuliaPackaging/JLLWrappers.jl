@@ -92,3 +92,24 @@ function get_julia_libpaths()
     end
     return JULIA_LIBDIRS
 end
+
+@static if VERSION >= v"1.6.0" && libc(HostPlatform()) == "musl"
+    include("runtime_musl_workaround.jl")
+
+    """
+        musl_soname_workaround(lib_handle::Ptr{Cvoid})
+
+    Applies a workaround for musl's lack of SONAME loading by twiddling
+    some internal datastructures.  See `src/runtime_musl_workaround.jl`
+    for more details.  Returns the altered library handle.
+    """
+    musl_soname_workaround(lib_handle::Ptr{Cvoid}) = replace_musl_shortname(lib_handle)
+else
+    """
+        musl_soname_workaround(lib_handle::Ptr{Cvoid})
+
+    Not applicable on this platform.  Returns the altered library handle.
+    """
+    musl_soname_workaround(lib_handle::Ptr{Cvoid}) = lib_handle
+end
+

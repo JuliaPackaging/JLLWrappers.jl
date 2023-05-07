@@ -6,6 +6,7 @@ end
 
 if VERSION >= v"1.6.0-DEV"
     using Preferences
+    using Base.BinaryPlatforms
 end
 
 const global_typeassert_available = VERSION >= v"1.9.0-"
