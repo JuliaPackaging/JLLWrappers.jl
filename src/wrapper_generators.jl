@@ -52,6 +52,13 @@ macro generate_init_footer()
     end)
 end
 
+macro generate_jll_init(expr::Expr)
+    return quote
+        function $(esc(Symbol("__init__")))()
+            $(esc(expr))
+        end # __init__()
+    end
+end
 
 """
     emit_preference_path_load(pref_name, default_value)
