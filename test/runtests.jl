@@ -82,7 +82,9 @@ module TestJLL end
                 @test output == "Hello, World!"
             else
                 output = @eval TestJLL begin
-                    readchomp(`$(hello_world())`)
+                    hello_world() do exe
+                        readchomp(`$(exe)`)
+                    end
                 end
                 @test output == "Hello, World!"
             end
