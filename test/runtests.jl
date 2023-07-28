@@ -63,6 +63,29 @@ module TestJLL end
             else
                 @test basename(@eval TestJLL HelloWorldC_jll.get_goodbye_world_path()) == "goodbye_world"
             end
+
+            @static if VERSION >= v"1.6.0"
+                # Test old-style exe execution
+                @test_logs (:warn, "hello_world() is deprecated, use the non-do-block form") begin
+                    output = @eval TestJLL begin
+                        hello_world() do exe
+                            readchomp(`$(exe)`)
+                        end
+                    end
+                end
+                @test output == "Hello, World!"
+
+                # Test new-style exe execution
+                output = @eval TestJLL begin
+                    readchomp(`$(hello_world())`)
+                end
+                @test output == "Hello, World!"
+            else
+                output = @eval TestJLL begin
+                    readchomp(`$(hello_world())`)
+                end
+                @test output == "Hello, World!"
+            end
         end
 
         # Package with a LibraryProduct
