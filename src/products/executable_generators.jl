@@ -17,6 +17,7 @@ function declare_old_executable_product(product_name)
         !!! compat "Julia 1.3"
         """
         function $(product_name)(f::Function; adjust_PATH::Bool = true, adjust_LIBPATH::Bool = true)
+            Base.depwarn(string($(product_name), "() is deprecated, use the non-do-block form"), $(string(product_name)))
             # We sub off to a shared function to avoid compiling the same thing over and over again
             return Base.invokelatest(
                 JLLWrappers.withenv_executable_wrapper,
@@ -72,9 +73,6 @@ function declare_new_executable_product(product_name)
                 )
                 return Cmd(Cmd([$(path_name)]); env)
             end
-
-            # Signal to concerned parties that they should use the new version, eventually.
-            #@deprecate $(product_name)(func) $(product_name)()
         end
     end
 end
