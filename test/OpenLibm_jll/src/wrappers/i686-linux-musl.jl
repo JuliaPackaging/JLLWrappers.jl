@@ -4,7 +4,7 @@ export libopenlibm
 JLLWrappers.@generate_wrapper_header("OpenLibm")
 JLLWrappers.@declare_library_product(libopenlibm, "libopenlibm.so.3")
 JLLWrappers.@declare_library_product(libnonexisting, "libnonexisting.so.0")
-function __init__()
+JLLWrappers.@generate_jll_init begin
     JLLWrappers.@generate_init_header()
     JLLWrappers.@init_library_product(
         libopenlibm,
@@ -18,4 +18,4 @@ function __init__()
     )
 
     JLLWrappers.@generate_init_footer()
-end  # __init__()
+end
