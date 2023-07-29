@@ -2,3 +2,5 @@
 /Manifest.toml
 /dev/
 .vscode/
+
+test/*_jll

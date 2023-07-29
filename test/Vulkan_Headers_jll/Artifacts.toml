@@ -1,6 +1,0 @@
-[Vulkan_Headers]
-git-tree-sha1 = "0bb05b4b3e6d183d2dca8df6b2f4d15d79a04f09"
-
-    [[Vulkan_Headers.download]]
-    sha256 = "ffa7f30d420103504251f9a197dfd7022356223134b1956c0fcd63db1399054f"
-    url = "https://github.com/JuliaBinaryWrappers/Vulkan_Headers_jll.jl/releases/download/Vulkan_Headers-v1.2.151+0/Vulkan_Headers.v1.2.151.any.tar.gz"
