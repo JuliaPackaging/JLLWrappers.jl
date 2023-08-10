@@ -109,6 +109,14 @@ module TestJLL end
 
         # Package with a LibraryProduct
         Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "libxls_jll")))
+        # Windows doesn't have both, so we have to make sure it exists:
+        if Sys.iswindows() && !isfile(joinpath(libxlsreader_artifact_dir, "bin", "libxlsreader.dll"))
+            cp(
+                joinpath(libxlsreader_artifact_dir, "bin", "libxlsreader-8.dll"),
+                joinpath(libxlsreader_artifact_dir, "bin", "libxlsreader.dll")
+            )
+            chmod(joinpath(libxlsreader_artifact_dir, "bin", "libxlsreader.dll"), 0o755)
+        end
         @test_nowarn @eval TestJLL using libxls_jll
         @test @eval TestJLL libxls_jll.is_available()
         @test isfile(@eval TestJLL libxls_jll.libxlsreader_path)
