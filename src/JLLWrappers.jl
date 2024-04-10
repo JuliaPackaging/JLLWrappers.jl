@@ -1,8 +1,8 @@
 module JLLWrappers
 
-if isdefined(Base, :Experimental) && isdefined(Base.Experimental, Symbol("@compiler_options"))
-    @eval Base.Experimental.@compiler_options compile=min optimize=0 infer=false
-end
+# if isdefined(Base, :Experimental) && isdefined(Base.Experimental, Symbol("@compiler_options"))
+#     @eval Base.Experimental.@compiler_options compile=min optimize=0 infer=false
+# end
 
 if VERSION >= v"1.6.0-DEV"
     using Preferences

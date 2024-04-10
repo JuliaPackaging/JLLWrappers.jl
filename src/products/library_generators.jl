@@ -60,8 +60,8 @@ macro init_library_product(product_name, product_path, dlopen_flags)
             # of `ccall` with its path/SONAME will find this path immediately.
             # dlopen_flags === nothing means to not dlopen the library.
             if $(dlopen_flags) !== nothing
-                global $(handle_name) = dlopen($(path_name), $(dlopen_flags))
-                push!(LIBPATH_list, dirname($(path_name)))
+                global $(handle_name) = dlopen($(path_name)::String, $(dlopen_flags))
+                push!(LIBPATH_list, dirname($(path_name)::String))
             end
         end,
         init_new_library_product(product_name),

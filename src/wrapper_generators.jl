@@ -51,7 +51,7 @@ macro generate_init_footer()
         unique!(PATH_list)
         unique!(LIBPATH_list)
         PATH[] = join(PATH_list, $(pathsep))
-        LIBPATH[] = join(vcat(LIBPATH_list, Base.invokelatest(JLLWrappers.get_julia_libpaths))::Vector{String}, $(pathsep))
+        LIBPATH[] = join(vcat(LIBPATH_list, $(JLLWrappers.get_julia_libpaths)()), $(pathsep))
     end)
 end
 
