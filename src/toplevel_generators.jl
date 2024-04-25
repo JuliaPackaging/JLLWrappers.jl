@@ -50,19 +50,6 @@ we disable them for a sizable boost in first load time.
 """
 function generate_compiler_options(src_name)
     # Newer Julias have `@compiler_options` that can enable interpreted mode
-    if isdefined(Base, :Experimental) && isdefined(Base.Experimental, Symbol("@compiler_options"))
-        return quote
-            Core.eval($(Symbol("$(src_name)_jll")), :(Base.Experimental.@compiler_options compile=min optimize=0 infer=false))
-        end
-    end
-
-    # Older Julias only have `@optlevel`
-    if isdefined(Base, :Experimental) && isdefined(Base.Experimental, Symbol("@optlevel"))
-        return quote
-            @eval Base.Experimental.@optlevel 0
-        end
-    end
-
     # If none of these are available, TOUGH BEANS.
     return nothing
 end
