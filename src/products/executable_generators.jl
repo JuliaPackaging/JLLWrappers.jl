@@ -7,6 +7,11 @@ function declare_old_executable_product(product_name)
 
         An `ExecutableProduct` wrapper that supports the execution of $($product_name).
 
+        !!! warning "Deprecated"
+            This method is deprecated because it is not thread-safe and will be
+            removed in future Julia versions. Use the non do-block form
+            instead.
+
         # Example
         ```julia
         $($product_name)() do exe
