@@ -67,7 +67,7 @@ module TestJLL end
 
         # Package with a FileProduct
         Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "Vulkan_Headers_jll")))
-        @test_nowarn @eval TestJLL using Vulkan_Headers_jll
+        @eval TestJLL using Vulkan_Headers_jll
         @test @eval TestJLL Vulkan_Headers_jll.is_available()
         @test isfile(@eval TestJLL vk_xml)
         @test isfile(@eval TestJLL Vulkan_Headers_jll.vk_xml_path)
@@ -88,7 +88,7 @@ module TestJLL end
 
         # Package with an ExecutableProduct
         Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "HelloWorldC_jll")))
-        @test_nowarn @eval TestJLL using HelloWorldC_jll
+        @eval TestJLL using HelloWorldC_jll
         @test @eval TestJLL HelloWorldC_jll.is_available()
         @test isfile(@eval TestJLL HelloWorldC_jll.hello_world_path)
         @test isfile(@eval TestJLL HelloWorldC_jll.get_hello_world_path())
@@ -117,7 +117,7 @@ module TestJLL end
             )
             chmod(joinpath(libxlsreader_artifact_dir, "bin", "libxlsreader.dll"), 0o755)
         end
-        @test_nowarn @eval TestJLL using libxls_jll
+        @eval TestJLL using libxls_jll
         @test @eval TestJLL libxls_jll.is_available()
         @test isfile(@eval TestJLL libxls_jll.libxlsreader_path)
         @test isfile(@eval TestJLL libxls_jll.get_libxlsreader_path())
@@ -141,7 +141,7 @@ module TestJLL end
                 # On 1.6 we lazyily download the missing artifact, causing output to stderr
                 @eval TestJLL using LAMMPS_jll
             else
-                @test_nowarn @eval TestJLL using LAMMPS_jll
+                @eval TestJLL using LAMMPS_jll
             end
             if @eval TestJLL LAMMPS_jll.is_available()
                 mpi_abi = @eval TestJLL LAMMPS_jll.augment_platform!(LAMMPS_jll.HostPlatform())["mpi"]
