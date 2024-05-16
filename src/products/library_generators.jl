@@ -36,13 +36,13 @@ macro declare_library_product(product_name, product_soname)
     )
 end
 
-function init_new_library_product(product_name)
+function init_new_library_product(product_name, path_name)
     @static if VERSION < v"1.6.0-DEV"
         return nothing
     else
         return quote
             # Initialize non-const variable export with the path to this product
-            global $(product_name) = $(Symbol(string(product_name, "_path")))
+            global $(product_name) = $(path_name)::String
         end
     end
 end
@@ -60,10 +60,10 @@ macro init_library_product(product_name, product_path, dlopen_flags)
             # of `ccall` with its path/SONAME will find this path immediately.
             # dlopen_flags === nothing means to not dlopen the library.
             if $(dlopen_flags) !== nothing
-                global $(handle_name) = dlopen($(path_name), $(dlopen_flags))
-                push!(LIBPATH_list, dirname($(path_name)))
+                global $(handle_name) = dlopen($(path_name)::String, $(dlopen_flags))
+                push!(LIBPATH_list, dirname($(path_name)::String))
             end
         end,
-        init_new_library_product(product_name),
+        init_new_library_product(product_name, path_name),
     )
 end

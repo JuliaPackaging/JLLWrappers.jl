@@ -106,6 +106,6 @@ macro init_executable_product(product_name, product_path)
         end
 
         # Add this executable's directory onto the list of PATH's that we'll need to expose to dependents
-        push!(PATH_list, dirname($(path_name)))
+        push!(PATH_list, dirname($(path_name)::String))
     end)
 end
