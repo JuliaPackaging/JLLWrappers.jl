@@ -20,24 +20,30 @@ macro generate_wrapper_header(src_name)
         if ccall(:jl_generating_output, Cint, ()) == 1
             find_artifact_dir() # to precompile this into Pkgimage
         end
+        eager_mode() = nothing
     end)
 end
 
 
 macro generate_init_header(dependencies...)
     deps_path_add = Expr[]
+    eager_mode = Expr[]
     if !isempty(dependencies)
         for dep in dependencies
             push!(deps_path_add, quote
                 isdefined($(dep), :PATH_list) && append!(PATH_list, $(dep).PATH_list)
                 isdefined($(dep), :LIBPATH_list) && append!(LIBPATH_list, $(dep).LIBPATH_list)
             end)
+            push!(eager_mode, :(isdefined($(dep), :eager_mode) && $(dep).eager_mode()))
         end
     end
 
     return excat(
         # This either calls `@artifact_str()`, or returns a constant string if we're overridden.
         :(global artifact_dir = find_artifact_dir()),
+
+        # Add `eager_mode` invocations on all our dependencies
+        eager_mode...,
 
         # Initialize PATH_list and LIBPATH_list
         deps_path_add...,
