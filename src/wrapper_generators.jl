@@ -30,17 +30,22 @@ macro generate_init_header(dependencies...)
     eager_mode = Expr[]
     if !isempty(dependencies)
         for dep in dependencies
-            push!(deps_path_add, quote
-                isdefined($(dep), :PATH_list) && append!(PATH_list, $(dep).PATH_list)
-                isdefined($(dep), :LIBPATH_list) && append!(LIBPATH_list, $(dep).LIBPATH_list)
-            end)
-            push!(eager_mode, :(isdefined($(dep), :eager_mode) && $(dep).eager_mode()))
+            depmod = getfield(__module__, dep)
+            if isdefined(depmod, :PATH_list)
+                push!(deps_path_add, :(append!(PATH_list, $(dep).PATH_list)))
+            end
+            if isdefined(depmod, :LIBPATH_list)
+                push!(deps_path_add, :(append!(LIBPATH_list, $(dep).LIBPATH_list)))
+            end
+            if isdefined(depmod, :eager_mode)
+                push!(eager_mode, :($(dep).eager_mode()))
+            end
         end
     end
 
     return excat(
         # This either calls `@artifact_str()`, or returns a constant string if we're overridden.
-        :(global artifact_dir = find_artifact_dir()),
+        :(global artifact_dir = find_artifact_dir()::String),
 
         # Add `eager_mode` invocations on all our dependencies
         eager_mode...,
