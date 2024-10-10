@@ -30,11 +30,13 @@ macro generate_init_header(dependencies...)
     eager_mode = Expr[]
     if !isempty(dependencies)
         for dep in dependencies
-            push!(deps_path_add, quote
-                isdefined($(dep), :PATH_list) && append!(PATH_list, $(dep).PATH_list)
-                isdefined($(dep), :LIBPATH_list) && append!(LIBPATH_list, $(dep).LIBPATH_list)
-            end)
-            depmod = getglobal(__module__, dep)
+            depmod = getfield(__module__, dep)
+            if isdefined(depmod, :PATH_list)
+                push!(deps_path_add, :(append!(PATH_list, $(dep).PATH_list)))
+            end
+            if isdefined(depmod, :LIBPATH_list)
+                push!(deps_path_add, :(append!(LIBPATH_list, $(dep).LIBPATH_list)))
+            end
             if isdefined(depmod, :eager_mode)
                 push!(eager_mode, :($(dep).eager_mode()))
             end
