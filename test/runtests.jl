@@ -18,7 +18,7 @@ if VERSION <= v"1.6.0-DEV"
     ]
 else
     test_pkgs = [
-        ("HelloWorldC", v"1.3.0+0"),
+        ("HelloWorldC", v"1.4.0+0"),
         ("LAMMPS", v"2.4.0+0"),
         ("libxls", v"1.6.2+0"),
         ("Vulkan_Headers", v"1.3.243+1"),

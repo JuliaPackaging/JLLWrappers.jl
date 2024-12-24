@@ -110,7 +110,9 @@ function generate_wrapper_load(src_name, pkg_uuid, __source__)
         @static if VERSION < v"1.6.0-DEV"
             return :(parse_wrapper_platform(x) = platform_key_abi(x))
         else
-            return :(parse_wrapper_platform(x) = parse(Platform, x))
+            # Use `tryparse` because the `Artifacts.toml` file cound include artifacts for
+            # platforms/architectures not yet supported by the current version of Julia.
+            return :(parse_wrapper_platform(x) = tryparse(Platform, x))
         end
     end
 
@@ -142,7 +144,12 @@ function generate_wrapper_load(src_name, pkg_uuid, __source__)
                 #     package-specific Generator-closures
                 d = Dict{Platform,String}()
                 for f in x
-                    d[parse_wrapper_platform(basename(f)[1:end-3])] = joinpath(dir, "wrappers", f)
+                    platform = parse_wrapper_platform(basename(f)[1:end-3])
+                    # `platform` could be `nothing` for example if the architecture isn't
+                    # known to currently running Julia version.
+                    if !isnothing(platform)
+                        d[platform] = joinpath(dir, "wrappers", f)
+                    end
                 end
                 return d
             end
