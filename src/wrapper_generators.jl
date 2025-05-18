@@ -17,10 +17,12 @@ macro generate_wrapper_header(src_name)
                 return $(Expr(:macrocall, Symbol("@artifact_str"), __source__, src_name))
             end
         end
-        if ccall(:jl_generating_output, Cint, ()) == 1
-            Base.precompile(find_artifact_dir, ()) # to precompile this into Pkgimage
-        end
         eager_mode() = nothing
+        if ccall(:jl_generating_output, Cint, ()) == 1
+            # to precompile these into Pkgimage
+            Base.precompile(find_artifact_dir, ())
+            Base.precompile(eager_mode, ())
+        end
     end)
 end
 
