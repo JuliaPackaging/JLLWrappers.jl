@@ -61,8 +61,8 @@ macro init_library_product(product_name, product_path, dlopen_flags)
             # dlopen_flags === nothing means to not dlopen the library.
             if $(dlopen_flags) !== nothing
                 global $(handle_name) = dlopen($(path_name)::String, $(dlopen_flags))
-                push!(LIBPATH_list, dirname($(path_name)::String))
             end
+            push!(LIBPATH_list, dirname($(path_name)::String))
         end,
         init_new_library_product(product_name, path_name),
     )
