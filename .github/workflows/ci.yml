@@ -33,34 +33,21 @@ jobs:
         os:
           - ubuntu-latest
           - ubuntu-22.04-arm
-          - macos-13
+          - macos-15-intel
           - macos-latest
           - windows-latest
         julia-arch:
-          - x64
+          - default
           - x86
-          - aarch64
         exclude:
           # Exclude all incompatible os/architecture combinations
           - os: macOS-latest
             julia-arch: x86
-          - os: macOS-13
+          - os: macOS-15-intel
             julia-arch: x86
-          - os: macOS-13
-            julia-arch: aarch64
-          - os: macOS-latest
-            julia-arch: x64
-          - os: ubuntu-latest
-            julia-arch: aarch64
-          - os: windows-latest
-            julia-arch: aarch64
-          - os: ubuntu-22.04-arm
-            julia-arch: x86
-          - os: ubuntu-22.04-arm
-            julia-arch: x64
           # There seems to be an issue with Julia v1.4 on macOS:
           # https://github.com/JuliaPackaging/JLLWrappers.jl/pull/67#issuecomment-2321873551
-          - os: macOS-13
+          - os: macOS-15-intel
             julia-version: 1.4
           # aarch64-darwin isn't available on old releases
           - os: macOS-latest
