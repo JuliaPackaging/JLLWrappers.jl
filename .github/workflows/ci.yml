@@ -46,7 +46,7 @@ jobs:
           - os: macOS-15-intel
             julia-arch: x86
           - os: ubuntu-22.04-arm
-            julia-arch: x64
+            julia-arch: x86
           # There seems to be an issue with Julia v1.4 on macOS:
           # https://github.com/JuliaPackaging/JLLWrappers.jl/pull/67#issuecomment-2321873551
           - os: macOS-15-intel
