@@ -2,6 +2,7 @@ module JLLWrappers
 
 @static if VERSION >= v"1.6.0-DEV"
     using Preferences
+    using Artifacts: Artifacts
 end
 
 @static if VERSION >= v"1.6.0-DEV"

@@ -92,3 +92,27 @@ function get_julia_libpaths()
     end
     return JULIA_LIBDIRS
 end
+
+# Precompile-time hook invoked by `@generate_wrapper_header` to cover the call sites
+# `find_artifact_dir` and `@generate_init_footer` reach at `__init__`
+@static if VERSION >= v"1.6.0-DEV"
+    function precompile_init_callsites(jll_module::Module)
+        # `@artifact_str` passes `Val(LA)` where `LA` is the first of these
+        # modules imported by the JLL.  The `Val{Artifacts}` flavour is already
+        # covered by a `precompile(...)` statement in the Artifacts stdlib itself.
+        for modname in (:LazyArtifacts, :Pkg, :PkgArtifacts)
+            if isdefined(jll_module, modname)
+                LA = getfield(jll_module, modname)
+                argtypes = (Module, String, SubString{String}, String, Dict{String,Any},
+                            Base.SHA1, Base.BinaryPlatforms.Platform, Val{LA})
+                Base.precompile(Artifacts._artifact_str, argtypes)
+                Base.precompile(Artifacts.__artifact_str, argtypes)
+                break
+            end
+        end
+        Base.precompile(get_julia_libpaths, ())
+        return nothing
+    end
+else
+    precompile_init_callsites(::Module) = nothing
+end

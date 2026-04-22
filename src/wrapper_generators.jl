@@ -22,6 +22,7 @@ macro generate_wrapper_header(src_name)
             # to precompile these into Pkgimage
             Base.precompile(find_artifact_dir, ())
             Base.precompile(eager_mode, ())
+            JLLWrappers.precompile_init_callsites(@__MODULE__)
         end
     end)
 end
