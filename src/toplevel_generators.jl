@@ -46,9 +46,12 @@ end
     generate_compiler_options(src_name)
 
 Because JLL packages do not contain code that benefits much from compiler optimizations,
-we disable them for a sizable boost in first load time.
+we disable them for a sizable boost in first load time. This can be opted out of by
+setting the `disable_optimization` JLLWrappers preference to `false`.
 """
 function generate_compiler_options(src_name)
+    JLLWrappers.disable_optimization || return nothing
+
     # Newer Julias have `@compiler_options` that can enable interpreted mode
     if isdefined(Base, :Experimental) && isdefined(Base.Experimental, Symbol("@compiler_options"))
         return quote
