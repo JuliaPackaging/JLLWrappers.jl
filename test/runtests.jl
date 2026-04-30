@@ -166,19 +166,20 @@ end
             helloworld_path = joinpath(@__DIR__, "HelloWorldC_jll")
 
             script_path = joinpath(test_dir, "subproc_script.jl")
-            open(script_path, "w") do io
-                println(io, "using Pkg")
-                println(io, "Pkg.develop([")
-                println(io, "    Pkg.PackageSpec(path=", repr(jllwrappers_path), "),")
-                println(io, "    Pkg.PackageSpec(path=", repr(helloworld_path), "),")
-                println(io, "])")
-                println(io, "using JLLWrappers")
-                println(io, "JLLWrappers.disable_optimization === false || error(\"expected disable_optimization=false, got \$(JLLWrappers.disable_optimization)\")")
-                println(io, "using HelloWorldC_jll")
-                println(io, "HelloWorldC_jll.is_available() || error(\"HelloWorldC_jll not available\")")
-                println(io, "isfile(HelloWorldC_jll.hello_world_path) || error(\"hello_world_path not a file: \$(HelloWorldC_jll.hello_world_path)\")")
-                println(io, "println(\"OK\")")
-            end
+            # repr() quotes the path as a Julia string literal, escaping backslashes on Windows.
+            write(script_path, """
+                using Pkg
+                Pkg.develop([
+                    Pkg.PackageSpec(path=$(repr(jllwrappers_path))),
+                    Pkg.PackageSpec(path=$(repr(helloworld_path))),
+                ])
+                using JLLWrappers
+                JLLWrappers.disable_optimization === false || error("expected disable_optimization=false, got \$(JLLWrappers.disable_optimization)")
+                using HelloWorldC_jll
+                HelloWorldC_jll.is_available() || error("HelloWorldC_jll not available")
+                isfile(HelloWorldC_jll.hello_world_path) || error("hello_world_path not a file: \$(HelloWorldC_jll.hello_world_path)")
+                println("OK")
+                """)
 
             cmd = `$(Base.julia_cmd()) --project=$test_dir $script_path`
             io = IOBuffer()
