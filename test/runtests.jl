@@ -43,6 +43,7 @@ end; end
 
 module TestJLL end
 @testset "JLLWrappers.jl" begin
+    @test JLLWrappers.disable_optimization === true
     mktempdir() do dir
         Pkg.activate(dir)
 

@@ -1,11 +1,19 @@
 module JLLWrappers
 
-if isdefined(Base, :Experimental) && isdefined(Base.Experimental, Symbol("@compiler_options"))
-    @eval Base.Experimental.@compiler_options compile=min optimize=0 infer=false
+@static if VERSION >= v"1.6.0-DEV"
+    using Preferences
 end
 
-if VERSION >= v"1.6.0-DEV"
-    using Preferences
+@static if VERSION >= v"1.6.0-DEV"
+    const disable_optimization = @load_preference("disable_optimization", true)
+else
+    const disable_optimization = true
+end
+
+@static if isdefined(Base, :Experimental) && isdefined(Base.Experimental, Symbol("@compiler_options"))
+    if disable_optimization
+        @eval Base.Experimental.@compiler_options compile=min optimize=0 infer=false
+    end
 end
 
 const global_typeassert_available = VERSION >= v"1.9.0-"
