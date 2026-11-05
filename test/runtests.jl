@@ -155,3 +155,5 @@ module TestJLL end
         end
     end
 end
+
+include("cross_platform.jl")
