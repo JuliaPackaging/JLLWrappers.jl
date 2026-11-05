@@ -36,5 +36,6 @@ end
 include("toplevel_generators.jl")
 include("wrapper_generators.jl")
 include("runtime.jl")
+include("cross_platform.jl")
 
 end # module
