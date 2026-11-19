@@ -130,6 +130,17 @@ module TestJLL end
             @test endswith(libxlsreader_path, libxlsreader_unversioned_path)
         end
 
+        # On musl, libraries are opened through a directory of symlinks to all libraries
+        # loaded so far.  The symlinks work on any Linux: glibc, too, recognizes a library
+        # that is already loaded by its inode.
+        @static if VERSION >= v"1.6.0-DEV" && Sys.islinux()
+            link = JLLWrappers.musl_dlopen_path(libxlsreader_path)
+            @test islink(link)
+            @test realpath(link) == realpath(libxlsreader_path)
+            @test any(startswith("libjulia"), readdir(dirname(link)))
+            @test Base.Libc.Libdl.dlopen(link) == @eval TestJLL libxls_jll.libxlsreader_handle
+        end
+
         # Issue #20
         if Sys.iswindows()
             @test Sys.BINDIR ∈ JLLWrappers.get_julia_libpaths()
